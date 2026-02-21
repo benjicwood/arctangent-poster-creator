@@ -29,7 +29,7 @@ export default {
     try {
       // IMPORTANT: this is the TAG list endpoint
       const res = await fetch(
-        "https://res.cloudinary.com/dhqkcdjcx/image/list/trees-gallery.json",
+        "https://res.cloudinary.com/dhqkcdjcx/image/list/arctangent-gallery.json",
       );
       if (!res.ok) throw new Error(`List failed (${res.status})`);
       const data = await res.json();

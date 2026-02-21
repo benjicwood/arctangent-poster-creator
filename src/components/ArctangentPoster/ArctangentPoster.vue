@@ -3,16 +3,16 @@
     <!-- Background selector buttons -->
     <div class="background-selector">
       <button
-        :class="{ active: selectedYear === '2025' }"
-        @click="selectedYear = '2025'"
-      >
-        2025
-      </button>
-      <button
         :class="{ active: selectedYear === '2026' }"
         @click="selectedYear = '2026'"
       >
         2026
+      </button>
+      <button
+        :class="{ active: selectedYear === '2027' }"
+        @click="selectedYear = '2027'"
+      >
+        2027
       </button>
     </div>
     <div class="poster-wrapper" ref="poster">
@@ -56,11 +56,11 @@
 <script>
 import BandGrid from "./BandGrid/BandGrid.vue";
 import { toPng, toBlob } from "html-to-image";
-import bg2025 from "../../assets/background/trees-blank-2025.png";
-import bg2026 from "../../assets/background/trees-blank-2026.png";
+import bg2026 from "../../assets/background/atg26.png";
+import bg2027 from "../../assets/background/atg27.png";
 
 export default {
-  name: "TreesPoster",
+  name: "ArctangentPoster",
   components: { BandGrid },
 
   data() {
@@ -88,12 +88,12 @@ export default {
       });
     },
     backgroundSrc() {
-      return this.selectedYear === "2025" ? bg2025 : bg2026;
+      return this.selectedYear === "2026" ? bg2026 : bg2027;
     },
   },
 
   mounted() {
-    document.body.style.backgroundColor = "#213862";
+    document.body.style.backgroundColor = "#233E31";
     this.isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   },
 
@@ -124,7 +124,7 @@ export default {
         pixelRatio: 2,
       });
       const link = document.createElement("a");
-      link.download = `trees-poster-${this.selectedYear}.png`;
+      link.download = `arctangent-poster-${this.selectedYear}.png`;
       link.href = dataUrl;
       link.click();
 
@@ -144,7 +144,7 @@ export default {
         backgroundColor: "#000",
         pixelRatio: 2,
       });
-      const file = new File([blob], `trees-poster-${this.selectedYear}.png`, {
+      const file = new File([blob], `arctangent-poster-${this.selectedYear}.png`, {
         type: "image/png",
       });
 
@@ -152,12 +152,12 @@ export default {
         await navigator.share({
           files: [file],
           title: "Check out my festival poster!",
-          text: `Made this Trees Festival ${this.selectedYear} poster 🎶`,
+          text: `Made this ArcTanGent Festival ${this.selectedYear} poster 🎶`,
         });
         this.showToast("Poster shared!");
       } else {
         const link = document.createElement("a");
-        link.download = `trees-poster-${this.selectedYear}.png`;
+        link.download = `arctangent-poster-${this.selectedYear}.png`;
         link.href = URL.createObjectURL(blob);
         link.click();
         this.showToast(
@@ -181,8 +181,8 @@ export default {
     async uploadPosterToCloudinary(blob) {
       const form = new FormData();
       form.append("file", blob);
-      form.append("upload_preset", "trees-posters");
-      form.append("tags", "trees-gallery");
+      form.append("upload_preset", "arctangent-posters");
+      form.append("tags", "arctangent-gallery");
 
       const res = await fetch(
         "https://api.cloudinary.com/v1_1/dhqkcdjcx/image/upload",
@@ -235,7 +235,7 @@ export default {
   display: flex;
   justify-content: center;
   gap: 0.75rem;
-  background: rgba(23, 39, 68, 0.95);
+  background: #3C765B;
   padding: 0.75rem 1.25rem;
   border-radius: 12px 12px 0 0;
   backdrop-filter: blur(6px);
@@ -258,7 +258,7 @@ export default {
   // left: 50%;
   // transform: translateX(-50%);
   z-index: 101;
-  background: rgba(23, 39, 68, 0.95);
+  background: #3C765B;
   color: white;
   border-radius: 9999px;
   padding: 0.4rem 0.6rem;
@@ -270,7 +270,7 @@ export default {
     bottom 0.3s ease;
 
   &:hover {
-    background: rgba(31, 40, 50, 1);
+    background: #111F18;
   }
 }
 
@@ -283,7 +283,7 @@ export default {
 .download-btn,
 .share-btn,
 .copy-btn {
-  background: #172744;
+  background: #3C765B;
   border: 3px solid white;
   border-radius: 0;
   color: white;
@@ -385,7 +385,7 @@ export default {
     }
 
     &.active {
-      background: #c67d0e; // highlight active year
+      background: #3C765B; // highlight active year
       color: white;
       filter: none;
     }

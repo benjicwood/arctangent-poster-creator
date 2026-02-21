@@ -5,7 +5,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  background-color: #233E31;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -29,7 +29,7 @@ body {
   display: flex;
   justify-content: center; /* horizontal centering */
   align-items: flex-start; /* vertical: start/top */
-  background-color: #242424; /* default background */
+  background-color: #233E31; /* default background */
   /* background-image: url(./assets/background/squarespace-bg.png); */
   /* background-size: contain; */
   background-repeat: no-repeat;
@@ -44,7 +44,7 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.3); /* tweak opacity to taste */
+  background-color: rgba(0, 0, 0, 0.5); /* tweak opacity to taste */
   pointer-events: none; /* ensures overlay doesn't block clicks */
   z-index: 0;
 }

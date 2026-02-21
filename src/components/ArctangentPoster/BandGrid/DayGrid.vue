@@ -93,8 +93,10 @@ export default {
 @use "../../../assets/scss/styles.scss";
 
 .band-grid {
-  height: 30%;
+  height: 27.5%;
   box-sizing: border-box;
+  margin: 0;        /* make sure no leftover margins */
+  flex-shrink: 0;   /* don’t let items squeeze weirdly */
 }
 
 .smallest-band-logo {

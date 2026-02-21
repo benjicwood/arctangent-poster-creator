@@ -285,12 +285,12 @@ export default {
 
         console.log("%cposition:", "font-size:20px; color:orange;", position);
 
-        window.gtag("event", "band_selected", {
-          band_name: selected.name,
-          day,
-          position,
-          value: 1,
-        });
+        // window.gtag("event", "band_selected", {
+        //   band_name: selected.name,
+        //   day,
+        //   position,
+        //   value: 1,
+        // });
       }
       // if (selected?.name) {
       //   window.gtag("event", "band_selected", {

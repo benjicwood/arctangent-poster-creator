@@ -1,37 +1,8 @@
 <template>
   <div class="poster-content">
-    <!-- Thursday -->
-    <DayGrid
-      day="Thursday"
-      slug="dayOne"
-      :bands="days.dayOne"
-      :coHeadliner="coHeadliner.thursday"
-      @open="openModal"
-      :alwaysHighlight="alwaysHighlight"
-    />
-
-    <!-- Friday -->
-    <DayGrid
-      day="Friday"
-      slug="dayTwo"
-      :bands="days.dayTwo"
-      :coHeadliner="coHeadliner.friday"
-      @open="openModal"
-      :alwaysHighlight="alwaysHighlight"
-    />
-
-    <!-- Saturday -->
-    <DayGrid
-      day="Saturday"
-      slug="dayThree"
-      :bands="days.dayThree"
-      :coHeadliner="coHeadliner.saturday"
-      @open="openModal"
-      :alwaysHighlight="alwaysHighlight"
-    />
-
     <!-- Wednesday -->
     <div class="band-grid-wednesday">
+      <div class="band-row">
       <!-- Headliner -->
       <BandSection
         class="headliner"
@@ -67,7 +38,40 @@
         :chosenImage="slot.chosenImage"
         :alwaysHighlight="alwaysHighlight"
       />
+      </div>
+      <div class="band-input-row">
+        <BandInput size="small" />
+      </div>
     </div>
+    <!-- Thursday -->
+    <DayGrid
+      day="Thursday"
+      slug="dayOne"
+      :bands="days.dayOne"
+      :coHeadliner="coHeadliner.thursday"
+      @open="openModal"
+      :alwaysHighlight="alwaysHighlight"
+    />
+
+    <!-- Friday -->
+    <DayGrid
+      day="Friday"
+      slug="dayTwo"
+      :bands="days.dayTwo"
+      :coHeadliner="coHeadliner.friday"
+      @open="openModal"
+      :alwaysHighlight="alwaysHighlight"
+    />
+
+    <!-- Saturday -->
+    <DayGrid
+      day="Saturday"
+      slug="dayThree"
+      :bands="days.dayThree"
+      :coHeadliner="coHeadliner.saturday"
+      @open="openModal"
+      :alwaysHighlight="alwaysHighlight"
+    />
   </div>
   <!-- Modal -->
   <BandSelectModal
@@ -92,13 +96,14 @@
 import DayGrid from "./DayGrid.vue";
 import BandSelectModal from "../../BandSelectModal/BandSelectModal.vue";
 import BandSection from "./BandSection.vue";
+import BandInput from "./BandInput.vue";
 
 export default {
   name: "BandGrid",
   props: {
     alwaysHighlight: { type: Boolean, default: false },
   },
-  components: { DayGrid, BandSelectModal, BandSection },
+  components: { DayGrid, BandSelectModal, BandSection, BandInput },
   data() {
     return {
       isModalVisible: false,
@@ -236,19 +241,44 @@ export default {
 <style scoped lang="scss">
 @use "../../../assets/scss/styles.scss";
 
+// .poster-content {
+//   position: absolute;
+//   top: 0;
+//   left: 50%;
+//   transform: translateX(-50%);
+//   width: 100%;
+//   height: 100%; /* desktop: full poster height */
+//   box-sizing: border-box;
+//   padding-top: 18.5%; /* aligns headliner with artwork */
+//   padding-bottom: 8%;
+//   padding-left: 7.5%;
+//   padding-right: 5.5%;
+//   border: 3px solid white;
+// }
+
 .poster-content {
   position: absolute;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  height: 100%; /* desktop: full poster height */
+  height: 100%;
+
+  display: flex; /* 👈 add this */
+  flex-direction: column; /* 👈 stack vertically */
+  gap: clamp(2px, 0.6vh, 8px);
   box-sizing: border-box;
-  padding-top: 15%; /* aligns headliner with artwork */
-  padding-bottom: 5%;
-  padding-left: 5%;
-  padding-right: 4%;
+  padding-top: 18.5%;
+  padding-bottom: 8%;
+  padding-left: 7.5%;
+  padding-right: 5.5%;
   border: 3px solid white;
+}
+
+@media (max-width: 768px) {
+  .poster-content {
+    gap: clamp(2px, 0.4vh, 8px);
+  }
 }
 
 .row {
@@ -259,17 +289,30 @@ export default {
 
 .band-grid-wednesday {
   display: flex;
+  flex-direction: column; /* 👈 key change */
   width: 100%;
   justify-content: center;
   align-items: stretch;
   gap: 1%;
-  height: 7%;
+  height: 12.5%;
   box-sizing: border-box;
 }
 
 /* First slot (headliner) */
 .band-grid-wednesday .headliner {
   width: 40%;
+}
+
+.band-row {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: 1%;
+  flex: 1; /* takes most height */
+}
+
+.band-input-row {
+  width: 100%;
 }
 
 /* Remaining three slots */

@@ -16,7 +16,6 @@ export default {
   justify-content: center;
   align-items: center;
   background-color: black;
-  /* background-image: url(./assets/background/trees-blank-2026-feb-17-25.png); */
   background-size: contain;
   background-repeat: no-repeat;
   background-position: top center;
