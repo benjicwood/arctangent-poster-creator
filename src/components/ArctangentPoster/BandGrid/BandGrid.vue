@@ -266,20 +266,21 @@ export default {
 
   display: flex; /* 👈 add this */
   flex-direction: column; /* 👈 stack vertically */
-  gap: clamp(2px, 0.6vh, 8px);
+  // gap: clamp(2px, 0.6vh, 8px);
+  gap: clamp(2.67px, 0.8vh, 10.67px);
   box-sizing: border-box;
-  padding-top: 18.5%;
+  padding-top: 17%;
   padding-bottom: 8%;
-  padding-left: 7.5%;
-  padding-right: 5.5%;
+  padding-left: 7%;
+  padding-right: 4%;
   border: 3px solid white;
 }
 
-@media (max-width: 768px) {
-  .poster-content {
-    gap: clamp(2px, 0.4vh, 8px);
-  }
-}
+// @media (max-width: 768px) {
+//   .poster-content {
+//     gap: clamp(2px, 0.4vh, 8px);
+//   }
+// }
 
 .row {
   flex-grow: 1;

@@ -46,7 +46,7 @@ export default {
 
 .band-text {
   color: white; // festival poster default
-  font-family: 'Impact', sans-serif;
+  font-family: 'NeueHaasUnica', sans-serif;
   line-height: 1.1;
   word-break: break-word;
   max-width: 90%; // stops text overflowing

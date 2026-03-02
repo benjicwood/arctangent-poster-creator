@@ -1,18 +1,31 @@
+// @font-face {
+//     font-family: 'Soleil';
+//     src: url('~@/assets/fonts/SoleilRegular.otf');
+// }
+// @font-face {
+//     font-family: 'Soleil Bold';
+//     src: url('~@/assets/fonts/SoleilBold.otf');
+// }
+// @font-face {
+//     font-family: 'Soleil Book';
+//     src: url('~@/assets/fonts/SoleilBook.otf');
+// }
+// @font-face {
+//     font-family: 'Soleil Light';
+//     src: url('~@/assets/fonts/SoleilLight.otf');
+// }
+
+// @font-face {
+//     font-family: 'Soleil Light';
+//     src: url('~@/assets/fonts/SoleilLight.otf');
+// }
+
 @font-face {
-    font-family: 'Soleil';
-    src: url('~@/assets/fonts/SoleilRegular.otf');
-}
-@font-face {
-    font-family: 'Soleil Bold';
-    src: url('~@/assets/fonts/SoleilBold.otf');
-}
-@font-face {
-    font-family: 'Soleil Book';
-    src: url('~@/assets/fonts/SoleilBook.otf');
-}
-@font-face {
-    font-family: 'Soleil Light';
-    src: url('~@/assets/fonts/SoleilLight.otf');
+  font-family: "NeueHaasUnica";
+  src: url("/fonts/NeueHaasUnicaBold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
 @mixin band-logo-container {
@@ -20,7 +33,7 @@
     background-repeat: no-repeat;
     background-position: center;
     color: white;
-    font-family: 'Soleil', sans-serif;
+    font-family: 'NeueHaasUnica', sans-serif;
     font-weight: 700;
     text-align: center;
 }
@@ -113,7 +126,6 @@
 }
 
 .band-grid-wednesday {
-    // padding: 0 40px 0 60px;
     display: flex;
 }
 
@@ -128,3 +140,11 @@ body.download-poster-bg {
 body.arctangent-poster-bg {
   background-color: #233E31;
 }
+
+.smallest-band-logo { transform: scale(0.7); }
+.smaller-band-logo  { transform: scale(0.8); }
+.small-band-logo    { transform: scale(0.9); }
+.normal-band-logo   { transform: scale(1); }
+.large-band-logo    { transform: scale(1.1); }
+.larger-band-logo   { transform: scale(1.2); }
+.largest-band-logo  { transform: scale(1.3); }

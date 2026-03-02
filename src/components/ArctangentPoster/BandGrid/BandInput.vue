@@ -28,9 +28,9 @@ export default {
   border: none;
   text-align: center;
   color: white;
-  font-family: "Soleil", sans-serif;
+  font-family: "NeueHaasUnica", sans-serif;
   font-weight: 700;
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
 }
 
 .large {

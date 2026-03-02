@@ -446,7 +446,7 @@ export default {
   flex-direction: column;
   width: 100%;
   border-radius: 10px;
-  font-family: "Soleil", sans-serif;
+  font-family: "NeueHaasUnica", sans-serif;
   position: relative;
   animation: fadeInScale 0.2s ease-out;
   border: 2px solid #711214;

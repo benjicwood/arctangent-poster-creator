@@ -99,27 +99,6 @@ export default {
   flex-shrink: 0;   /* don’t let items squeeze weirdly */
 }
 
-.smallest-band-logo {
-  transform: scale(0.7);
-}
-.smaller-band-logo {
-  transform: scale(0.8);
-}
-.small-band-logo {
-  transform: scale(0.9);
-}
-.normal-band-logo {
-  transform: scale(1);
-}
-.large-band-logo {
-  transform: scale(1.1);
-}
-.larger-band-logo {
-  transform: scale(1.2);
-}
-.largest-band-logo {
-  transform: scale(1.3);
-}
 
 .headliners-row.headliners-one {
   display: grid;

@@ -1,7 +1,7 @@
 <template>
   <div class="poster-container">
     <!-- Background selector buttons -->
-    <div class="background-selector">
+    <!-- <div class="background-selector">
       <button
         :class="{ active: selectedYear === '2026' }"
         @click="selectedYear = '2026'"
@@ -14,7 +14,7 @@
       >
         2027
       </button>
-    </div>
+    </div> -->
     <div class="poster-wrapper" ref="poster">
       <img
         class="poster-background"
@@ -56,8 +56,8 @@
 <script>
 import BandGrid from "./BandGrid/BandGrid.vue";
 import { toPng, toBlob } from "html-to-image";
-import bg2026 from "../../assets/background/atg26.png";
-import bg2027 from "../../assets/background/atg27.png";
+// import bg2026 from "../../assets/background/atg26.png";
+import bg2027 from "../../assets/background/atg27.jpg";
 
 export default {
   name: "ArctangentPoster",
@@ -66,7 +66,7 @@ export default {
   data() {
     return {
       isHidden: false,
-      selectedYear: "2026",
+      selectedYear: "2027",
       isMobile: false,
       controlsHidden: false,
       toast: { show: false, message: "", type: "success" },
@@ -88,7 +88,8 @@ export default {
       });
     },
     backgroundSrc() {
-      return this.selectedYear === "2026" ? bg2026 : bg2027;
+      return bg2027;
+      // return this.selectedYear === "2026" ? bg2026 : bg2027;
     },
   },
 
@@ -144,9 +145,13 @@ export default {
         backgroundColor: "#000",
         pixelRatio: 2,
       });
-      const file = new File([blob], `arctangent-poster-${this.selectedYear}.png`, {
-        type: "image/png",
-      });
+      const file = new File(
+        [blob],
+        `arctangent-poster-${this.selectedYear}.png`,
+        {
+          type: "image/png",
+        },
+      );
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
@@ -235,7 +240,7 @@ export default {
   display: flex;
   justify-content: center;
   gap: 0.75rem;
-  background: #3C765B;
+  background: #3c765b;
   padding: 0.75rem 1.25rem;
   border-radius: 12px 12px 0 0;
   backdrop-filter: blur(6px);
@@ -252,13 +257,14 @@ export default {
 
 /* Toggle button */
 .toggle-bar {
+  font-family: sans-serif;
   border: 2px solid white;
   position: fixed;
   bottom: 4.5rem;
   // left: 50%;
   // transform: translateX(-50%);
   z-index: 101;
-  background: #3C765B;
+  background: #3c765b;
   color: white;
   border-radius: 9999px;
   padding: 0.4rem 0.6rem;
@@ -270,7 +276,7 @@ export default {
     bottom 0.3s ease;
 
   &:hover {
-    background: #111F18;
+    background: #111f18;
   }
 }
 
@@ -283,7 +289,7 @@ export default {
 .download-btn,
 .share-btn,
 .copy-btn {
-  background: #3C765B;
+  background: #3c765b;
   border: 3px solid white;
   border-radius: 0;
   color: white;
@@ -385,7 +391,7 @@ export default {
     }
 
     &.active {
-      background: #3C765B; // highlight active year
+      background: #3c765b; // highlight active year
       color: white;
       filter: none;
     }
