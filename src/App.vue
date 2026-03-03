@@ -13,7 +13,7 @@ export default {
   width: 100vw;
   min-height: 100vh;
   display: flex;
-  justify-content: center;
+  /* justify-content: center; */
   align-items: center;
   background-color: black;
   background-size: contain;

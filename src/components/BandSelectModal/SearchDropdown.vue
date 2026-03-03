@@ -4,24 +4,25 @@
       <input
         :key="id"
         :name="name"
-        @focus="showOptions()"
-        @blur="exit()"
-        @keyup="keyMonitor"
         v-model="searchFilter"
         :disabled="disabled"
         :placeholder="placeholder"
         autocomplete="off"
+        @focus="showOptions"
+        @blur="onBlurCommit"
+        @keydown="onKeydown"
       />
     </div>
+
     <transition name="fade">
-      <ul class="dropdown-menu" v-show="optionsShown">
+      <ul class="dropdown-menu" v-show="optionsShown && filteredOptions.length">
         <li
-          @mousedown="selectOption(option)"
           v-for="(option, index) in filteredOptions"
           :key="index"
+          @mousedown.prevent="selectOption(option)"
         >
           <a href="javascript:void(0)">
-            {{ option.name || option.id || "-" }}
+            {{ optionLabel(option) }}
           </a>
         </li>
       </ul>
@@ -33,107 +34,136 @@
 export default {
   name: "SearchDropdown",
   props: {
-    name: {
-      type: String,
-      required: false,
-      default: "input",
-    },
-    options: {
-      type: Array,
-      required: true,
-    },
-    placeholder: {
-      type: String,
-      required: false,
-      default: "Please select an option",
-    },
-    disabled: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    maxItem: {
-      type: Number,
-      required: false,
-      default: 1200,
-    },
-    id: {
-      type: Number,
-      required: false,
-      default: 0,
-    },
+    name: { type: String, default: "input" },
+    options: { type: Array, required: true },
+    placeholder: { type: String, default: "Start typing..." },
+    disabled: { type: Boolean, default: false },
+    maxItem: { type: Number, default: 1200 },
+    id: { type: Number, default: 0 },
+
+    /* v-model */
+    modelValue: { type: String, default: "" },
   },
+  emits: ["selected", "commit", "filter", "update:modelValue"],
   data() {
     return {
-      selected: {},
+      selected: null,
       optionsShown: false,
       searchFilter: "",
     };
   },
   computed: {
     filteredOptions() {
-      const filtered = [];
-      const regex = new RegExp(this.searchFilter, "ig");
+      const out = [];
+      const term = (this.searchFilter || "").trim();
+
+      // escape regex special chars
+      const safeTerm = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(safeTerm, "i");
+
       for (const option of this.options) {
-        if (this.searchFilter.length < 1 || option.name.match(regex)) {
-          if (filtered.length < this.maxItem) filtered.push(option);
-        } else {
-          if (filtered.length > this.maxItem) filtered.push("option");
+        const label = this.optionLabel(option);
+        if (!term || regex.test(label)) {
+          out.push(option);
+          if (out.length >= this.maxItem) break;
         }
       }
-      return filtered;
-    },
-  },
-  methods: {
-    selectOption(option) {
-      this.selected = option;
-      this.optionsShown = false;
-      this.searchFilter = this.selected.name;
-      this.$emit("selected", this.selected);
-    },
-    showOptions() {
-      if (!this.disabled) {
-        this.searchFilter = "";
-        this.optionsShown = true;
-      }
-    },
-    exit() {
-      const previousSelected = this.selected;
-      if (!this.selected.id) {
-        this.selected = {};
-        this.searchFilter = "";
-      } else {
-        this.searchFilter = this.selected.name;
-      }
-      this.optionsShown = false;
-
-      if (this.selected !== previousSelected) {
-        this.$emit("selected", this.selected);
-      }
-    },
-
-    // exit() {
-    //     if (!this.selected.id) {
-    //         this.selected = {};
-    //         this.searchFilter = '';
-    //     } else {
-    //         this.searchFilter = this.selected.name;
-    //     }
-    //     // this.$emit('selected', this.selected);
-    //     this.optionsShown = false;
-    // },
-    // Selecting when pressing Enter
-    keyMonitor: function (event) {
-      if (event.key === "Enter" && this.filteredOptions[0])
-        this.selectOption(this.filteredOptions[0]);
+      return out;
     },
   },
   watch: {
-    searchFilter() {
-      if (this.filteredOptions.length === 0) {
-        this.selected = {};
+    modelValue: {
+      immediate: true,
+      handler(val) {
+        this.searchFilter = val || "";
+      },
+    },
+    searchFilter(val) {
+      this.$emit("update:modelValue", val);
+      this.$emit("filter", val);
+
+      // if user types, clear selected state (until they click an option)
+      this.selected = null;
+    },
+  },
+  methods: {
+    optionLabel(option) {
+      return (option?.name || option?.id || "-").toString();
+    },
+
+    showOptions() {
+      if (this.disabled) return;
+      this.optionsShown = true;
+    },
+
+    hideOptions() {
+      this.optionsShown = false;
+    },
+
+    selectOption(option) {
+      this.selected = option || null;
+      const label = this.optionLabel(option);
+
+      this.searchFilter = label;
+      this.hideOptions();
+
+      // “real” selection (asset band)
+      this.$emit("selected", option);
+      // also commit so parent can treat it as final
+      this.$emit("commit", { type: "option", text: label, option });
+    },
+
+    commitTypedText() {
+      const text = (this.searchFilter || "").trim();
+      this.hideOptions();
+
+      // if empty, treat as clear
+      if (!text) {
+        this.$emit("commit", { type: "clear", text: "" });
+        return;
       }
-      this.$emit("filter", this.searchFilter);
+
+      // if typed text EXACTLY matches an option label, commit as option
+      const match = this.options.find((o) => {
+        const label = this.optionLabel(o).toLowerCase();
+        return label === text.toLowerCase();
+      });
+
+      if (match) {
+        this.$emit("selected", match);
+        this.$emit("commit", { type: "option", text, option: match });
+      } else {
+        // custom text
+        this.$emit("commit", { type: "custom", text });
+      }
+    },
+
+    onBlurCommit() {
+      // blur fires after mousedown selection, but we used @mousedown.prevent
+      // so selection happens first; committing again is safe (it’ll match exact label)
+      this.commitTypedText();
+    },
+
+    onKeydown(e) {
+      if (e.key === "Escape") {
+        this.hideOptions();
+        e.preventDefault();
+        return;
+      }
+
+      if (e.key === "Enter") {
+        e.preventDefault();
+        // If there’s a filtered option and user likely wants first, you can choose:
+        // - commitTypedText (keeps what typed)
+        // - or auto-select first option when input matches partially
+        // We'll commit typed text; exact match becomes option automatically.
+        this.commitTypedText();
+        return;
+      }
+
+      if (e.key === "ArrowDown") {
+        this.showOptions();
+      }
     },
   },
 };
@@ -157,41 +187,34 @@ export default {
   display: inline-block;
   vertical-align: middle;
 }
-.dropdown a:hover {
-  text-decoration: none;
-}
 
-.dropdown-toggle {
-  position: relative;
-  display: inline-block;
-  transition: 0.75s ease-in;
-  border-radius: 2px 2px 0 0;
-}
 .dropdown-toggle input {
   border: none;
   background: #0002;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
+  padding-left: 0.5rem;
   outline: none;
-  transition: 0.75s ease-in;
+  transition: 0.2s ease-in;
   color: gray;
   border-radius: 4px;
   height: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .dropdown-toggle:hover input {
   background: #0004;
-  transition: 0.3s;
 }
 
 .dropdown-menu {
   position: absolute;
-  top: 100%; /* right below the input */
+  top: 100%;
   left: 0;
   z-index: 2000;
-  width: 100%; /* same width as the input */
+  width: 100%;
   max-height: 200px;
-  overflow-y: auto; /* scroll if too many options */
+  overflow-y: auto;
   padding: 0.5rem;
   margin: 0;
   list-style: none;
@@ -203,54 +226,14 @@ export default {
   box-sizing: border-box;
 }
 
-/* .dropdown-menu {
-  position: fixed;
-  z-index: 2000; 
-  min-width: 160px;
-  max-height: 200px;
-  overflow-y: auto;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.175);
-  margin: 0 0 0;
-} */
-
-/* .dropdown-menu {
-  position: fixed;
-  z-index: 2000; 
-  top: 100%;
-  left: 0;
-  z-index: 1000;m
-  float: left;
-  min-width: 160px;
-  width: 100%;
-  padding: 10px 20px 10px 10px;
-  margin: 0 0 0;
-  list-style: none;
-  font-size: 14px;
-  text-align: left;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-top: none;
-  border-radius: 4px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
-  background-clip: padding-box;
-  overflow: scroll;
-  max-height: 200px;
-} */
-
 .dropdown-menu > li > a {
   padding: 10px 20px;
   display: block;
-  clear: both;
-  font-weight: normal;
-  line-height: 1.6;
-  color: #333333;
+  color: #333;
   white-space: nowrap;
   text-decoration: none;
-  max-width: 100%;
 }
+
 .dropdown-menu > li > a:hover {
   background: #efefef;
   color: #409fcb;
@@ -258,12 +241,6 @@ export default {
 }
 
 .dropdown-menu > li {
-  overflow: hidden;
-  position: relative;
   margin: 0;
-}
-
-li {
-  list-style: none;
 }
 </style>

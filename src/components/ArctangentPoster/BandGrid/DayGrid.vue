@@ -16,8 +16,10 @@
         @click="emitOpen('headliner', `${day} Headliner`)"
         :band="bands.headliner.band"
         :size="bands.headliner.size"
-        :chosenImage="bands.headliner.chosenImage"
+        :weight="bands.headliner.weight"
+        :chosenImage="null"
         :alwaysHighlight="alwaysHighlight"
+        :textOnly="true"
       />
       <BandSection
         v-if="coHeadliner"
@@ -25,8 +27,10 @@
         @click="emitOpen('coHeadliner', `${day} Headliner`)"
         :band="bands.coHeadliner.band"
         :size="bands.coHeadliner.size"
-        :chosenImage="bands.coHeadliner.chosenImage"
+        :weight="bands.coHeadliner.weight"
+        :chosenImage="null"
         :alwaysHighlight="alwaysHighlight"
+        :textOnly="true"
       />
     </div>
 
@@ -39,8 +43,10 @@
         @click="emitOpen(`secondRow.${i}`, `${day} Band`)"
         :band="slot.band"
         :size="slot.size"
-        :chosenImage="slot.chosenImage"
+        :weight="slot.weight"
+        :chosenImage="null"
         :alwaysHighlight="alwaysHighlight"
+        :textOnly="true"
       />
     </div>
 
@@ -53,12 +59,14 @@
         @click="emitOpen(`thirdRow.${i}`, `${day} Band`)"
         :band="slot.band"
         :size="slot.size"
-        :chosenImage="slot.chosenImage"
+        :weight="slot.weight"
+        :chosenImage="null"
         :alwaysHighlight="alwaysHighlight"
+        :textOnly="true"
       />
     </div>
 
-    <!-- Inputs (optional, could also be slotted in) -->
+    <!-- Inputs -->
     <div class="input-grid">
       <BandInput size="medium" />
       <BandInput size="small" />
@@ -74,9 +82,9 @@ export default {
   name: "DayGrid",
   components: { BandSection, BandInput },
   props: {
-    day: { type: String, required: true }, // e.g. "Thursday"
-    slug: { type: String, required: true }, // e.g. "dayOne"
-    bands: { type: Object, required: true }, // nested object with headliner/coHeadliner/secondRow/thirdRow
+    day: { type: String, required: true },
+    slug: { type: String, required: true },
+    bands: { type: Object, required: true },
     coHeadliner: { type: Boolean, default: false },
     alwaysHighlight: { type: Boolean, default: false },
   },
@@ -95,26 +103,25 @@ export default {
 .band-grid {
   height: 27.5%;
   box-sizing: border-box;
-  margin: 0;        /* make sure no leftover margins */
-  flex-shrink: 0;   /* don’t let items squeeze weirdly */
+  margin: 0;
+  flex-shrink: 0;
 }
-
 
 .headliners-row.headliners-one {
   display: grid;
-  grid-template-columns: 1fr; /* single column */
+  grid-template-columns: 1fr;
   height: 31%;
 }
 
 .headliners-row.headliners-two {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* two equal columns */
+  grid-template-columns: 1fr 1fr;
   height: 31%;
   gap: 0;
 }
 
 .headliners-row.two-headliners > * {
-  flex: 1; /* equal width for both headliners */
-  max-width: 50%; /* optional, to prevent them from getting too wide */
+  flex: 1;
+  max-width: 50%;
 }
 </style>
