@@ -108,77 +108,86 @@ export default {
     },
 
     async downloadPoster() {
-      const node = this.$refs.poster;
+      await this.withCleanPosterRender(async () => {
+        const node = this.$refs.poster;
 
-      const blob = await toBlob(node, {
-        backgroundColor: "#000",
-        pixelRatio: 2,
+        const blob = await toBlob(node, {
+          backgroundColor: "#000",
+          pixelRatio: 2,
+        });
+
+        const dataUrl = await toPng(node, {
+          quality: 1,
+          cacheBust: true,
+          backgroundColor: "#000",
+          pixelRatio: 2,
+        });
+
+        const link = document.createElement("a");
+        link.download = `arctangent-poster-${this.selectedYear}.png`;
+        link.href = dataUrl;
+        link.click();
+
+        try {
+          await this.uploadPosterToCloudinary(blob);
+          this.showToast("Poster downloaded!");
+        } catch (e) {
+          console.error(e);
+          this.showToast("Poster downloaded", "error");
+        }
       });
-
-      const dataUrl = await toPng(node, {
-        quality: 1,
-        cacheBust: true,
-        backgroundColor: "#000",
-        pixelRatio: 2,
-      });
-      const link = document.createElement("a");
-      link.download = `arctangent-poster-${this.selectedYear}.png`;
-      link.href = dataUrl;
-      link.click();
-
-      try {
-        await this.uploadPosterToCloudinary(blob);
-        this.showToast("Poster downloaded!");
-      } catch (e) {
-        console.error(e);
-        this.showToast("Poster downloaded", "error");
-      }
-      //this.showToast("Poster downloaded!");
     },
 
     async sharePoster() {
-      const node = this.$refs.poster;
-      const blob = await toBlob(node, {
-        backgroundColor: "#000",
-        pixelRatio: 2,
-      });
-      const file = new File(
-        [blob],
-        `arctangent-poster-${this.selectedYear}.png`,
-        {
-          type: "image/png",
-        },
-      );
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: "Check out my festival poster!",
-          text: `Made this ArcTanGent Festival ${this.selectedYear} poster 🎶`,
+      await this.withCleanPosterRender(async () => {
+        const node = this.$refs.poster;
+        const blob = await toBlob(node, {
+          backgroundColor: "#000",
+          pixelRatio: 2,
         });
-        this.showToast("Poster shared!");
-      } else {
-        const link = document.createElement("a");
-        link.download = `arctangent-poster-${this.selectedYear}.png`;
-        link.href = URL.createObjectURL(blob);
-        link.click();
-        this.showToast(
-          "Sharing not supported — poster downloaded instead.",
-          "error",
+
+        const file = new File(
+          [blob],
+          `arctangent-poster-${this.selectedYear}.png`,
+          {
+            type: "image/png",
+          },
         );
-      }
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: "Check out my festival poster!",
+            text: `Made this ArcTanGent Festival ${this.selectedYear} poster 🎶`,
+          });
+          this.showToast("Poster shared!");
+        } else {
+          const link = document.createElement("a");
+          link.download = `arctangent-poster-${this.selectedYear}.png`;
+          link.href = URL.createObjectURL(blob);
+          link.click();
+          this.showToast(
+            "Sharing not supported — poster downloaded instead.",
+            "error",
+          );
+        }
+      });
     },
 
     async copyPoster() {
-      const node = this.$refs.poster;
-      const blob = await toBlob(node, {
-        backgroundColor: "#000",
-        pixelRatio: 2,
+      await this.withCleanPosterRender(async () => {
+        const node = this.$refs.poster;
+        const blob = await toBlob(node, {
+          backgroundColor: "#000",
+          pixelRatio: 2,
+        });
+
+        await navigator.clipboard.write([
+          new ClipboardItem({ "image/png": blob }),
+        ]);
+
+        this.showToast("Poster copied to clipboard!");
       });
-      await navigator.clipboard.write([
-        new ClipboardItem({ "image/png": blob }),
-      ]);
-      this.showToast("Poster copied to clipboard!");
     },
     async uploadPosterToCloudinary(blob) {
       const form = new FormData();
@@ -201,6 +210,14 @@ export default {
 
       return res.json();
     },
+  },
+  async withCleanPosterRender(fn) {
+    const grid = this.$refs.bandGrid;
+    if (!grid) return fn();
+
+    await grid.runWithoutEditingUI(async () => {
+      await fn();
+    });
   },
 };
 </script>

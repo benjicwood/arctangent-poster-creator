@@ -6,7 +6,6 @@
       coHeadliner ? 'headliners-two' : 'headliners-one',
     ]"
   >
-    <!-- Headliner(s) -->
     <div
       class="headliners-row"
       :class="coHeadliner ? 'headliners-two' : 'headliners-one'"
@@ -15,6 +14,8 @@
         :row="bands.headliner"
         :placeholder="`CLICK TO ADD ${day.toUpperCase()} HEADLINER`"
         :alwaysHighlight="alwaysHighlight || activeRowKey === 'headliner'"
+        :showPlaceholderAlways="!posterStarted"
+        :hideEditingUI="hideEditingUI"
         @click="$emit('open', slug, 'headliner', `${day} Headliner`)"
       />
 
@@ -23,16 +24,19 @@
         :row="bands.coHeadliner"
         :placeholder="`CLICK TO ADD ${day.toUpperCase()} CO-HEADLINER`"
         :alwaysHighlight="alwaysHighlight || activeRowKey === 'coHeadliner'"
+        :showPlaceholderAlways="!posterStarted"
+        :hideEditingUI="hideEditingUI"
         @click="$emit('open', slug, 'coHeadliner', `${day} Co-Headliner`)"
       />
     </div>
 
-    <!-- Main support rows -->
     <PosterRow
       class="second-row"
       :row="bands.secondRow"
       :placeholder="`CLICK TO ADD ${day.toUpperCase()} BANDS`"
       :alwaysHighlight="alwaysHighlight || activeRowKey === 'secondRow'"
+      :showPlaceholderAlways="!posterStarted"
+      :hideEditingUI="hideEditingUI"
       @click="$emit('open', slug, 'secondRow', `${day} Second Row`)"
     />
 
@@ -41,15 +45,18 @@
       :row="bands.thirdRow"
       :placeholder="`CLICK TO ADD ${day.toUpperCase()} LOWER LINEUP`"
       :alwaysHighlight="alwaysHighlight || activeRowKey === 'thirdRow'"
+      :showPlaceholderAlways="!posterStarted"
+      :hideEditingUI="hideEditingUI"
       @click="$emit('open', slug, 'thirdRow', `${day} Third Row`)"
     />
 
-    <!-- Extra small rows -->
     <PosterRow
       class="fourth-row"
       :row="bands.fourthRow"
       :placeholder="`CLICK TO ADD ${day.toUpperCase()} EXTRA BANDS`"
       :alwaysHighlight="alwaysHighlight || activeRowKey === 'fourthRow'"
+      :showPlaceholderAlways="!posterStarted"
+      :hideEditingUI="hideEditingUI"
       @click="$emit('open', slug, 'fourthRow', `${day} Extra Row`)"
     />
 
@@ -58,7 +65,9 @@
       :row="bands.fifthRow"
       :placeholder="`CLICK TO ADD ${day.toUpperCase()} MORE BANDS`"
       :alwaysHighlight="alwaysHighlight || activeRowKey === 'fifthRow'"
-      @click="$emit('open', slug, 'fifthRow', `${day} Final Small Row`)"
+      :showPlaceholderAlways="!posterStarted"
+      :hideEditingUI="hideEditingUI"
+      @click="$emit('open', slug, 'fifthRow', `${day} Final Row`)"
     />
   </div>
 </template>
@@ -76,6 +85,8 @@ export default {
     coHeadliner: { type: Boolean, default: false },
     alwaysHighlight: { type: Boolean, default: false },
     activeRowKey: { type: String, default: null },
+    posterStarted: { type: Boolean, default: false },
+    hideEditingUI: { type: Boolean, default: false },
   },
   emits: ["open"],
 };
@@ -121,10 +132,5 @@ export default {
 
 .fifth-row {
   height: 11%;
-}
-
-.fourth-row,
-.fifth-row {
-  padding-inline: 0.2rem;
 }
 </style>

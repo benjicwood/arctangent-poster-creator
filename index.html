@@ -1,12 +1,23 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/emojicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
     <title>Poster Creator</title>
 
     <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-K5N66W4P2G"
+    >
+
+        src="https://www.googletagmanager.com/gtag/js?id=G-EWD3ST3TBG"
+      >
+    </script>
     <script
       async
       src="https://www.googletagmanager.com/gtag/js?id=G-K5N66W4P2G"
@@ -18,9 +29,15 @@
       }
       gtag("js", new Date());
 
-      gtag('config', 'G-K5N66W4P2G', {
-        debug_mode: location.search.includes('debug_mode=true'),
-    });
+      gtag("config", "G-K5N66W4P2G", {
+        debug_mode: location.search.includes("debug_mode=true"),
+      });
+    </script>
+    <script>
+      setTimeout(() => {
+        console.log("google_tag_manager:", typeof window.google_tag_manager);
+        console.log("dataLayer length:", window.dataLayer?.length);
+      }, 1000);
     </script>
   </head>
   <body>

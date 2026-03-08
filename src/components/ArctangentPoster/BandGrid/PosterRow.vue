@@ -1,14 +1,23 @@
 <template>
   <div
     ref="rowEl"
-    :class="['poster-row', rowClass, { 'always-highlight': alwaysHighlight }]"
+    :class="[
+      'poster-row',
+      rowClass,
+      {
+        'always-highlight': alwaysHighlight && !hideEditingUI,
+        'editing-ui-hidden': hideEditingUI,
+      },
+    ]"
     @click="$emit('click')"
+    @mouseenter="isHovered = true"
+    @mouseleave="isHovered = false"
   >
     <span v-if="displayText" class="poster-row-text" :style="textStyle">
       {{ displayText }}
     </span>
 
-    <span v-else class="poster-row-placeholder">
+    <span v-else-if="shouldShowPlaceholder" class="poster-row-placeholder">
       {{ placeholder }}
     </span>
   </div>
@@ -32,6 +41,8 @@ export default {
     row: { type: Object, required: true },
     placeholder: { type: String, default: "CLICK TO ADD BANDS" },
     alwaysHighlight: { type: Boolean, default: false },
+    showPlaceholderAlways: { type: Boolean, default: false },
+    hideEditingUI: { type: Boolean, default: false },
   },
 
   data() {
@@ -39,6 +50,7 @@ export default {
       resolvedPx: 18,
       resolvedLetterSpacing: "0.04em",
       resizeObserver: null,
+      isHovered: false,
     };
   },
 
@@ -48,6 +60,13 @@ export default {
         .map((band) => (band?.name || "").trim().toUpperCase())
         .filter(Boolean)
         .join(" • ");
+    },
+
+    shouldShowPlaceholder() {
+      if (this.hideEditingUI) return false;
+      if (this.displayText) return false;
+      if (this.showPlaceholderAlways) return true;
+      return this.isHovered || this.alwaysHighlight;
     },
 
     basePx() {
@@ -60,7 +79,6 @@ export default {
 
     baseLetterSpacing() {
       const weight = Number(this.row?.weight) || 400;
-
       if (weight <= 200) return 0.08;
       if (weight >= 800) return 0.02;
       return 0.04;
@@ -155,18 +173,13 @@ export default {
     },
 
     getSpacingCandidates(base) {
-      // Try the "natural" spacing first, then slightly tighter,
-      // then slightly wider for small rows if there's room.
       const candidates = [base];
-
       const tighter1 = Math.max(base - 0.01, 0);
       const tighter2 = Math.max(base - 0.02, 0);
       const wider1 = base + 0.01;
 
       if (!candidates.includes(tighter1)) candidates.push(tighter1);
       if (!candidates.includes(tighter2)) candidates.push(tighter2);
-
-      // Wider spacing is most useful on smaller poster rows
       if ((this.row?.size || 4) <= 2 && !candidates.includes(wider1)) {
         candidates.push(wider1);
       }
@@ -208,7 +221,6 @@ export default {
         measure.offsetHeight <= maxHeight + 1;
 
       document.body.removeChild(measure);
-
       return fits;
     },
   },
@@ -229,7 +241,7 @@ export default {
   border: 1px solid transparent;
 }
 
-.poster-row:hover {
+.poster-row:hover:not(.editing-ui-hidden) {
   border-color: #c67d0e;
 }
 
@@ -260,5 +272,9 @@ export default {
 
 .always-highlight {
   border-color: #c67d0e !important;
+}
+
+.editing-ui-hidden {
+  border-color: transparent !important;
 }
 </style>

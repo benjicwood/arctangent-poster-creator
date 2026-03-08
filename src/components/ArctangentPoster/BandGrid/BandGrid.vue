@@ -10,6 +10,8 @@
         :alwaysHighlight="
           alwaysHighlight || isActiveRow('dayFour', 'headliner')
         "
+        :showPlaceholderAlways="!posterStarted"
+        :hideEditingUI="hideEditingUI"
       />
 
       <PosterRow
@@ -20,6 +22,8 @@
         :alwaysHighlight="
           alwaysHighlight || isActiveRow('dayFour', 'secondRow')
         "
+        :showPlaceholderAlways="!posterStarted"
+        :hideEditingUI="hideEditingUI"
       />
 
       <PosterRow
@@ -30,6 +34,8 @@
         :alwaysHighlight="
           alwaysHighlight || isActiveRow('dayFour', 'fourthRow')
         "
+        :showPlaceholderAlways="!posterStarted"
+        :hideEditingUI="hideEditingUI"
       />
     </div>
 
@@ -43,6 +49,8 @@
       :activeRowKey="
         activeSlug === 'dayOne' && isEditorVisible ? activeRowKey : null
       "
+      :posterStarted="posterStarted"
+      :hideEditingUI="hideEditingUI"
       @open="openEditor"
     />
 
@@ -56,6 +64,8 @@
       :activeRowKey="
         activeSlug === 'dayTwo' && isEditorVisible ? activeRowKey : null
       "
+      :posterStarted="posterStarted"
+      :hideEditingUI="hideEditingUI"
       @open="openEditor"
     />
 
@@ -69,6 +79,8 @@
       :activeRowKey="
         activeSlug === 'dayThree' && isEditorVisible ? activeRowKey : null
       "
+      :posterStarted="posterStarted"
+      :hideEditingUI="hideEditingUI"
       @open="openEditor"
     />
   </div>
@@ -159,6 +171,7 @@ export default {
       activeRowKey: null,
       editorTitle: "",
       isTrayMobile: false,
+      hideEditingUI: false,
 
       days: {
         dayOne: makeStandardDay(),
@@ -182,14 +195,17 @@ export default {
     },
 
     trayPlacement() {
-      // Saturday always top
       if (this.activeSlug === "dayThree") return "top";
-
-      // Friday also top on desktop + mobile for consistency
       if (this.activeSlug === "dayTwo") return "top";
-
-      // Wednesday + Thursday bottom
       return "bottom";
+    },
+
+    posterStarted() {
+      return Object.values(this.days).some((day) =>
+        Object.values(day).some(
+          (value) => Array.isArray(value?.bands) && value.bands.length > 0,
+        ),
+      );
     },
   },
 
@@ -208,6 +224,7 @@ export default {
     },
 
     openEditor(slug, rowKey, title) {
+      if (this.hideEditingUI) return;
       this.activeSlug = slug;
       this.activeRowKey = rowKey;
       this.editorTitle = title;
@@ -220,10 +237,60 @@ export default {
 
     isActiveRow(slug, rowKey) {
       return (
+        !this.hideEditingUI &&
         this.isEditorVisible &&
         this.activeSlug === slug &&
         this.activeRowKey === rowKey
       );
+    },
+
+    setPreviewMode(isPreview) {
+      this.hideEditingUI = !!isPreview;
+      if (isPreview) this.closeEditor();
+    },
+
+    async runWithoutEditingUI(fn) {
+      const previous = this.hideEditingUI;
+      this.hideEditingUI = true;
+      this.closeEditor();
+
+      await this.$nextTick();
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+
+      try {
+        return await fn();
+      } finally {
+        this.hideEditingUI = previous;
+        await this.$nextTick();
+      }
+    },
+
+    normalizeBandName(name) {
+      return (name || "").trim().toUpperCase();
+    },
+
+    getAnalyticsDayLabel(slug) {
+      const map = {
+        dayFour: "Wednesday",
+        dayOne: "Thursday",
+        dayTwo: "Friday",
+        dayThree: "Saturday",
+      };
+
+      return map[slug] || slug;
+    },
+
+    getAnalyticsRowLabel(rowKey) {
+      const map = {
+        headliner: "headliner",
+        coHeadliner: "co_headliner",
+        secondRow: "main_support",
+        thirdRow: "midday_bands",
+        fourthRow: "afternoon_bands",
+        fifthRow: "opening_bands",
+      };
+
+      return map[rowKey] || rowKey;
     },
 
     addBandToRow(band) {
@@ -231,18 +298,41 @@ export default {
       if (!row) return;
       if (row.bands.length >= row.maxBands) return;
 
+      const normalizedName = this.normalizeBandName(band.name);
+      const normalizedId = band.id || null;
+      const normalizedSource = band.source || "custom";
+
+      // Prevent duplicates in the same row
+      const alreadyExists = row.bands.some((existingBand) => {
+        const existingName = this.normalizeBandName(existingBand.name);
+        const existingId = existingBand.id || null;
+
+        // Prefer ID match for catalog bands
+        if (normalizedId && existingId) {
+          return existingId === normalizedId;
+        }
+
+        // Fall back to normalized name match
+        return existingName === normalizedName;
+      });
+
+      if (alreadyExists) {
+        return;
+      }
+
       row.bands.push({
-        id: band.id || null,
-        name: (band.name || "").trim(),
-        source: band.source || "custom",
+        id: normalizedId,
+        name: normalizedName,
+        source: normalizedSource,
       });
 
       this.trackBandEvent("poster_band_added", {
-        day: this.activeSlug,
-        row: this.activeRowKey,
-        band_id: band.id || "",
-        band_name: band.name || "",
-        source: band.source || "custom",
+        poster_day: this.getAnalyticsDayLabel(this.activeSlug),
+        poster_row_key: this.activeRowKey,
+        poster_row_label: this.getAnalyticsRowLabel(this.activeRowKey),
+        band_id: normalizedId || "",
+        band_name: normalizedName,
+        band_source: normalizedSource,
       });
     },
 
@@ -250,16 +340,7 @@ export default {
       const row = this.activeRow;
       if (!row || index < 0 || index >= row.bands.length) return;
 
-      const removed = row.bands[index];
       row.bands.splice(index, 1);
-
-      this.trackBandEvent("poster_band_removed", {
-        day: this.activeSlug,
-        row: this.activeRowKey,
-        band_id: removed.id || "",
-        band_name: removed.name || "",
-        source: removed.source || "custom",
-      });
     },
 
     moveBandInRow({ index, direction }) {
@@ -292,9 +373,18 @@ export default {
       if (day === "Saturday") this.coHeadliner.saturday = value;
     },
 
+    // trackBandEvent(eventName, payload) {
+    //   if (typeof window !== "undefined" && typeof window.gtag === "function") {
+    //     window.gtag("event", eventName, payload);
+    //   }
+    // },
     trackBandEvent(eventName, payload) {
+      console.log("TRACKING EVENT:", eventName, payload);
+
       if (typeof window !== "undefined" && typeof window.gtag === "function") {
         window.gtag("event", eventName, payload);
+      } else {
+        console.log("gtag not found");
       }
     },
   },
