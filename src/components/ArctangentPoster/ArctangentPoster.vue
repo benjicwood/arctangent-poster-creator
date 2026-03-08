@@ -79,11 +79,8 @@ export default {
       if (!grid) return true;
 
       return Object.values(grid.days).every((day) => {
-        return Object.values(day).every((row) => {
-          if (Array.isArray(row)) {
-            return row.every((slot) => !slot.band);
-          }
-          return !row.band;
+        return Object.values(day).every((value) => {
+          return !value?.bands || value.bands.length === 0;
         });
       });
     },

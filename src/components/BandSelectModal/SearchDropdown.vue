@@ -2,6 +2,7 @@
   <div class="dropdown" v-if="options">
     <div class="dropdown-toggle">
       <input
+        ref="inputEl"
         :key="id"
         :name="name"
         v-model="searchFilter"
@@ -40,24 +41,25 @@ export default {
     disabled: { type: Boolean, default: false },
     maxItem: { type: Number, default: 1200 },
     id: { type: Number, default: 0 },
-
-    /* v-model */
     modelValue: { type: String, default: "" },
   },
+
   emits: ["selected", "commit", "filter", "update:modelValue"],
+
   data() {
     return {
       selected: null,
       optionsShown: false,
       searchFilter: "",
+      suppressBlurCommit: false,
     };
   },
+
   computed: {
     filteredOptions() {
       const out = [];
       const term = (this.searchFilter || "").trim();
 
-      // escape regex special chars
       const safeTerm = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const regex = new RegExp(safeTerm, "i");
 
@@ -68,24 +70,41 @@ export default {
           if (out.length >= this.maxItem) break;
         }
       }
+
       return out;
     },
   },
+
   watch: {
     modelValue: {
       immediate: true,
       handler(val) {
         this.searchFilter = val || "";
+        if (!val) {
+          this.hideOptions();
+        }
       },
     },
+
     searchFilter(val) {
       this.$emit("update:modelValue", val);
       this.$emit("filter", val);
-
-      // if user types, clear selected state (until they click an option)
       this.selected = null;
+
+      if (this.disabled) {
+        this.hideOptions();
+        return;
+      }
+
+      const isFocused = document.activeElement === this.$refs.inputEl;
+      if (isFocused && val.trim()) {
+        this.optionsShown = true;
+      } else if (!val.trim()) {
+        this.hideOptions();
+      }
     },
   },
+
   methods: {
     optionLabel(option) {
       return (option?.name || option?.id || "-").toString();
@@ -93,37 +112,51 @@ export default {
 
     showOptions() {
       if (this.disabled) return;
-      this.optionsShown = true;
+      if ((this.searchFilter || "").trim()) {
+        this.optionsShown = true;
+      }
     },
 
     hideOptions() {
       this.optionsShown = false;
     },
 
-    selectOption(option) {
-      this.selected = option || null;
-      const label = this.optionLabel(option);
-
-      this.searchFilter = label;
+    resetInput() {
+      this.searchFilter = "";
+      this.selected = null;
       this.hideOptions();
 
-      // “real” selection (asset band)
+      this.$emit("update:modelValue", "");
+
+      if (this.$refs.inputEl) {
+        this.$refs.inputEl.blur();
+      }
+    },
+
+    selectOption(option) {
+      this.suppressBlurCommit = true;
+
+      const label = this.optionLabel(option);
+
       this.$emit("selected", option);
-      // also commit so parent can treat it as final
       this.$emit("commit", { type: "option", text: label, option });
+
+      this.resetInput();
+
+      requestAnimationFrame(() => {
+        this.suppressBlurCommit = false;
+      });
     },
 
     commitTypedText() {
       const text = (this.searchFilter || "").trim();
-      this.hideOptions();
 
-      // if empty, treat as clear
       if (!text) {
+        this.resetInput();
         this.$emit("commit", { type: "clear", text: "" });
         return;
       }
 
-      // if typed text EXACTLY matches an option label, commit as option
       const match = this.options.find((o) => {
         const label = this.optionLabel(o).toLowerCase();
         return label === text.toLowerCase();
@@ -133,36 +166,34 @@ export default {
         this.$emit("selected", match);
         this.$emit("commit", { type: "option", text, option: match });
       } else {
-        // custom text
         this.$emit("commit", { type: "custom", text });
       }
+
+      this.resetInput();
     },
 
     onBlurCommit() {
-      // blur fires after mousedown selection, but we used @mousedown.prevent
-      // so selection happens first; committing again is safe (it’ll match exact label)
+      if (this.suppressBlurCommit) return;
       this.commitTypedText();
     },
 
     onKeydown(e) {
       if (e.key === "Escape") {
-        this.hideOptions();
         e.preventDefault();
+        this.resetInput();
         return;
       }
 
       if (e.key === "Enter") {
         e.preventDefault();
-        // If there’s a filtered option and user likely wants first, you can choose:
-        // - commitTypedText (keeps what typed)
-        // - or auto-select first option when input matches partially
-        // We'll commit typed text; exact match becomes option automatically.
         this.commitTypedText();
         return;
       }
 
       if (e.key === "ArrowDown") {
-        this.showOptions();
+        if ((this.searchFilter || "").trim()) {
+          this.showOptions();
+        }
       }
     },
   },
@@ -201,6 +232,7 @@ export default {
   height: 1.5rem;
   width: 100%;
   box-sizing: border-box;
+  height: 2rem;
 }
 
 .dropdown-toggle:hover input {

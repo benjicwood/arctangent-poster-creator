@@ -2,49 +2,35 @@
   <div class="poster-content">
     <!-- Wednesday -->
     <div class="band-grid-wednesday">
-      <div class="band-row">
-        <BandSection
-          class="headliner"
-          position="headliner"
-          @click="
-            openModal({
-              slug: 'dayFour',
-              position: 'headliner',
-              title: 'Wednesday Headliner',
-            })
-          "
-          :band="days.dayFour.headliner.band"
-          :size="days.dayFour.headliner.size"
-          :weight="days.dayFour.headliner.weight"
-          :chosenImage="null"
-          :alwaysHighlight="alwaysHighlight"
-          :textOnly="true"
-        />
+      <PosterRow
+        class="wednesday-headliner"
+        :row="days.dayFour.headliner"
+        placeholder="CLICK TO ADD WEDNESDAY HEADLINER"
+        @click="openEditor('dayFour', 'headliner', 'Wednesday Headliner')"
+        :alwaysHighlight="
+          alwaysHighlight || isActiveRow('dayFour', 'headliner')
+        "
+      />
 
-        <BandSection
-          v-for="(slot, i) in days.dayFour.secondRow"
-          :key="`wednesday-${i}`"
-          class="main-sub"
-          :position="`secondRow.${i}`"
-          @click="
-            openModal({
-              slug: 'dayFour',
-              position: `secondRow.${i}`,
-              title: `Wednesday Band ${i + 1}`,
-            })
-          "
-          :band="slot.band"
-          :size="slot.size"
-          :weight="slot.weight"
-          :chosenImage="null"
-          :alwaysHighlight="alwaysHighlight"
-          :textOnly="true"
-        />
-      </div>
+      <PosterRow
+        class="wednesday-second-row"
+        :row="days.dayFour.secondRow"
+        placeholder="CLICK TO ADD WEDNESDAY BANDS"
+        @click="openEditor('dayFour', 'secondRow', 'Wednesday Bands')"
+        :alwaysHighlight="
+          alwaysHighlight || isActiveRow('dayFour', 'secondRow')
+        "
+      />
 
-      <div class="band-input-row">
-        <BandInput size="small" />
-      </div>
+      <PosterRow
+        class="wednesday-fourth-row"
+        :row="days.dayFour.fourthRow"
+        placeholder="CLICK TO ADD EXTRA WEDNESDAY BANDS"
+        @click="openEditor('dayFour', 'fourthRow', 'Wednesday Extra Row')"
+        :alwaysHighlight="
+          alwaysHighlight || isActiveRow('dayFour', 'fourthRow')
+        "
+      />
     </div>
 
     <!-- Thursday -->
@@ -53,8 +39,11 @@
       slug="dayOne"
       :bands="days.dayOne"
       :coHeadliner="coHeadliner.thursday"
-      @open="openModal"
       :alwaysHighlight="alwaysHighlight"
+      :activeRowKey="
+        activeSlug === 'dayOne' && isEditorVisible ? activeRowKey : null
+      "
+      @open="openEditor"
     />
 
     <!-- Friday -->
@@ -63,8 +52,11 @@
       slug="dayTwo"
       :bands="days.dayTwo"
       :coHeadliner="coHeadliner.friday"
-      @open="openModal"
       :alwaysHighlight="alwaysHighlight"
+      :activeRowKey="
+        activeSlug === 'dayTwo' && isEditorVisible ? activeRowKey : null
+      "
+      @open="openEditor"
     />
 
     <!-- Saturday -->
@@ -73,82 +65,106 @@
       slug="dayThree"
       :bands="days.dayThree"
       :coHeadliner="coHeadliner.saturday"
-      @open="openModal"
       :alwaysHighlight="alwaysHighlight"
+      :activeRowKey="
+        activeSlug === 'dayThree' && isEditorVisible ? activeRowKey : null
+      "
+      @open="openEditor"
     />
   </div>
 
-  <!-- Modal -->
-  <BandSelectModal
-    v-show="isModalVisible"
-    @selected="onSelect"
-    @size="onResize"
-    @weight="onWeight"
-    @close="closeModal"
-    @co-headliner="handleCoHeadliner"
-    :title="modalTitle"
-    :position="modalPosition"
-    :key="key ? key.toString() : ''"
-    :hasBand="activeBand"
+  <RowEditorTray
+    :title="editorTitle"
+    :row="isEditorVisible ? activeRow : null"
+    :slug="activeSlug"
+    :rowKey="activeRowKey"
+    :placement="trayPlacement"
     :thursdayCoHeadliner="coHeadliner.thursday"
     :fridayCoHeadliner="coHeadliner.friday"
     :saturdayCoHeadliner="coHeadliner.saturday"
-    :currentBand="currentBand"
-    :currentImage="null"
+    @add-band="addBandToRow"
+    @remove-band="removeBandFromRow"
+    @move-band="moveBandInRow"
+    @set-size="setRowSize"
+    @set-weight="setRowWeight"
+    @co-headliner="handleCoHeadliner"
+    @close="closeEditor"
   />
 </template>
 
 <script>
 import DayGrid from "./DayGrid.vue";
-import BandSelectModal from "../../BandSelectModal/BandSelectModal.vue";
-import BandSection from "./BandSection.vue";
-import BandInput from "./BandInput.vue";
+import PosterRow from "./PosterRow.vue";
+import RowEditorTray from "../../BandSelectModal/RowEditorTray.vue";
 
-const makeSlot = (band = "", size = "text-size-4", weight = 400) => ({
-  band,
+const makeRow = ({
+  size = 4,
+  weight = 500,
+  maxBands = 5,
+  minPx = 10,
+  allowWrap = false,
+} = {}) => ({
+  bands: [],
   size,
   weight,
-  chosenImage: null,
+  maxBands,
+  minPx,
+  allowWrap,
+});
+
+const makeStandardDay = () => ({
+  headliner: makeRow({
+    size: 6,
+    weight: 900,
+    maxBands: 1,
+    minPx: 18,
+    allowWrap: true,
+  }),
+  coHeadliner: makeRow({
+    size: 6,
+    weight: 900,
+    maxBands: 1,
+    minPx: 18,
+    allowWrap: true,
+  }),
+  secondRow: makeRow({ size: 5, weight: 500, maxBands: 5, minPx: 11 }),
+  thirdRow: makeRow({ size: 3, weight: 500, maxBands: 8, minPx: 9 }),
+  fourthRow: makeRow({ size: 2, weight: 500, maxBands: 10, minPx: 8 }),
+  fifthRow: makeRow({ size: 2, weight: 500, maxBands: 10, minPx: 8 }),
+});
+
+const makeWednesday = () => ({
+  headliner: makeRow({
+    size: 6,
+    weight: 900,
+    maxBands: 1,
+    minPx: 18,
+    allowWrap: true,
+  }),
+  secondRow: makeRow({ size: 4, weight: 500, maxBands: 4, minPx: 10 }),
+  fourthRow: makeRow({ size: 2, weight: 500, maxBands: 8, minPx: 8 }),
 });
 
 export default {
   name: "BandGrid",
+  components: { DayGrid, PosterRow, RowEditorTray },
   props: {
     alwaysHighlight: { type: Boolean, default: false },
   },
-  components: { DayGrid, BandSelectModal, BandSection, BandInput },
+
   data() {
     return {
-      isModalVisible: false,
-      modalTitle: "",
-      modalPosition: null,
-      modalSlug: null,
-      key: 0,
-      activeBand: null,
+      isEditorVisible: false,
+      activeSlug: null,
+      activeRowKey: null,
+      editorTitle: "",
+      isTrayMobile: false,
 
       days: {
-        dayOne: {
-          headliner: makeSlot("", "text-size-6", 700),
-          coHeadliner: makeSlot("", "text-size-6", 700),
-          secondRow: [makeSlot(), makeSlot(), makeSlot()],
-          thirdRow: [makeSlot(), makeSlot(), makeSlot(), makeSlot()],
-        },
-        dayTwo: {
-          headliner: makeSlot("", "text-size-6", 700),
-          coHeadliner: makeSlot("", "text-size-6", 700),
-          secondRow: [makeSlot(), makeSlot(), makeSlot()],
-          thirdRow: [makeSlot(), makeSlot(), makeSlot(), makeSlot()],
-        },
-        dayThree: {
-          headliner: makeSlot("", "text-size-6", 700),
-          coHeadliner: makeSlot("", "text-size-6", 700),
-          secondRow: [makeSlot(), makeSlot(), makeSlot()],
-          thirdRow: [makeSlot(), makeSlot(), makeSlot(), makeSlot()],
-        },
-        dayFour: {
-          headliner: makeSlot("", "text-size-6", 700),
-          secondRow: [makeSlot(), makeSlot(), makeSlot()],
-        },
+        dayOne: makeStandardDay(),
+        dayTwo: makeStandardDay(),
+        dayThree: makeStandardDay(),
+        dayFour: makeWednesday(),
       },
 
       coHeadliner: {
@@ -158,47 +174,116 @@ export default {
       },
     };
   },
+
   computed: {
-    currentBand() {
-      const slot = this.getSlot(this.modalSlug, this.modalPosition);
-      return slot?.band ?? "";
+    activeRow() {
+      if (!this.activeSlug || !this.activeRowKey) return null;
+      return this.days[this.activeSlug]?.[this.activeRowKey] || null;
+    },
+
+    trayPlacement() {
+      // Saturday always top
+      if (this.activeSlug === "dayThree") return "top";
+
+      // Friday also top on desktop + mobile for consistency
+      if (this.activeSlug === "dayTwo") return "top";
+
+      // Wednesday + Thursday bottom
+      return "bottom";
     },
   },
+
+  mounted() {
+    this.updateTrayViewport();
+    window.addEventListener("resize", this.updateTrayViewport);
+  },
+
+  beforeUnmount() {
+    window.removeEventListener("resize", this.updateTrayViewport);
+  },
+
   methods: {
-    openModal({ slug, position, title }) {
-      this.modalSlug = slug;
-      this.modalPosition = position;
-      this.modalTitle = title;
-      this.key = `${slug}-${position}`;
-
-      const slot = this.getSlot(slug, position);
-      this.activeBand = !!slot?.band;
-
-      this.isModalVisible = true;
+    updateTrayViewport() {
+      this.isTrayMobile = window.innerWidth <= 700;
     },
 
-    onSelect(selected) {
-      const slot = this.getSlot(this.modalSlug, this.modalPosition);
-      if (!slot) return;
-
-      // Always store TEXT only
-      // slot.band = selected?.name || selected?.id || "";
-      slot.band = (selected?.name || selected?.id || "").toUpperCase();
-
-      // Always no images in text-only mode
-      slot.chosenImage = null;
+    openEditor(slug, rowKey, title) {
+      this.activeSlug = slug;
+      this.activeRowKey = rowKey;
+      this.editorTitle = title;
+      this.isEditorVisible = true;
     },
 
-    onResize(sizeNum) {
-      const slot = this.getSlot(this.modalSlug, this.modalPosition);
-      if (!slot) return;
-      slot.size = `text-size-${sizeNum}`;
+    closeEditor() {
+      this.isEditorVisible = false;
     },
 
-    onWeight(weight) {
-      const slot = this.getSlot(this.modalSlug, this.modalPosition);
-      if (!slot) return;
-      slot.weight = Number(weight) || 400;
+    isActiveRow(slug, rowKey) {
+      return (
+        this.isEditorVisible &&
+        this.activeSlug === slug &&
+        this.activeRowKey === rowKey
+      );
+    },
+
+    addBandToRow(band) {
+      const row = this.activeRow;
+      if (!row) return;
+      if (row.bands.length >= row.maxBands) return;
+
+      row.bands.push({
+        id: band.id || null,
+        name: (band.name || "").trim(),
+        source: band.source || "custom",
+      });
+
+      this.trackBandEvent("poster_band_added", {
+        day: this.activeSlug,
+        row: this.activeRowKey,
+        band_id: band.id || "",
+        band_name: band.name || "",
+        source: band.source || "custom",
+      });
+    },
+
+    removeBandFromRow(index) {
+      const row = this.activeRow;
+      if (!row || index < 0 || index >= row.bands.length) return;
+
+      const removed = row.bands[index];
+      row.bands.splice(index, 1);
+
+      this.trackBandEvent("poster_band_removed", {
+        day: this.activeSlug,
+        row: this.activeRowKey,
+        band_id: removed.id || "",
+        band_name: removed.name || "",
+        source: removed.source || "custom",
+      });
+    },
+
+    moveBandInRow({ index, direction }) {
+      const row = this.activeRow;
+      if (!row) return;
+
+      const target = direction === "up" ? index - 1 : index + 1;
+      if (target < 0 || target >= row.bands.length) return;
+
+      const copy = [...row.bands];
+      [copy[index], copy[target]] = [copy[target], copy[index]];
+      row.bands = copy;
+    },
+
+    setRowSize(size) {
+      const row = this.activeRow;
+      if (!row) return;
+      row.size = Number(size) || 4;
+    },
+
+    setRowWeight(weight) {
+      const row = this.activeRow;
+      if (!row) return;
+      row.weight = Number(weight) || 500;
     },
 
     handleCoHeadliner({ day, value }) {
@@ -207,19 +292,10 @@ export default {
       if (day === "Saturday") this.coHeadliner.saturday = value;
     },
 
-    closeModal() {
-      this.isModalVisible = false;
-    },
-
-    getSlot(slug, position) {
-      if (!slug || !position) return null;
-      const path = position.split(".");
-      let slot = this.days[slug];
-      for (const key of path) {
-        if (slot == null) return null;
-        slot = slot[key];
+    trackBandEvent(eventName, payload) {
+      if (typeof window !== "undefined" && typeof window.gtag === "function") {
+        window.gtag("event", eventName, payload);
       }
-      return slot;
     },
   },
 };
@@ -235,7 +311,6 @@ export default {
   transform: translateX(-50%);
   width: 100%;
   height: 100%;
-
   display: flex;
   flex-direction: column;
   gap: clamp(2.67px, 0.8vh, 10.67px);
@@ -247,51 +322,25 @@ export default {
   border: 3px solid white;
 }
 
-.row {
-  flex-grow: 1;
-  display: flex;
-  // justify-content: center;
-}
-
 .band-grid-wednesday {
   display: flex;
   flex-direction: column;
   width: 100%;
-  // justify-content: center;
   align-items: stretch;
   gap: 1%;
   height: 12.5%;
   box-sizing: border-box;
 }
 
-.band-grid-wednesday .headliner {
-  width: 40%;
+.wednesday-headliner {
+  height: 52%;
 }
 
-.band-row {
-  display: flex;
-  // justify-content: center;
-  align-items: stretch;
-  gap: 1%;
-  flex: 1;
+.wednesday-second-row {
+  height: 24%;
 }
 
-.band-input-row {
-  width: 100%;
-}
-
-.band-grid-wednesday .main-sub {
-  width: 20%;
-}
-
-.band-grid-wednesday .headliner,
-.band-grid-wednesday .main-sub {
-  border: 1px solid transparent;
-  box-sizing: border-box;
-}
-
-.band-grid-wednesday .headliner:hover,
-.band-grid-wednesday .main-sub:hover {
-  border-color: #c67d0e;
+.wednesday-fourth-row {
+  height: 14%;
 }
 </style>
