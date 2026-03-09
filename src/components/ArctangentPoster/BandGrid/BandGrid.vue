@@ -420,7 +420,7 @@ export default {
     //   }
     // },
     trackBandEvent(eventName, payload) {
-      console.log("TRACKING EVENT:", eventName, payload);
+      // console.log("TRACKING EVENT:", eventName, payload);
 
       if (typeof window !== "undefined" && typeof window.gtag === "function") {
         window.gtag("event", eventName, payload);
