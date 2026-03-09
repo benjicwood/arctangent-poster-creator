@@ -6,86 +6,89 @@
       coHeadliner ? 'headliners-two' : 'headliners-one',
     ]"
   >
-    <!-- Headliner(s) -->
     <div
       class="headliners-row"
       :class="coHeadliner ? 'headliners-two' : 'headliners-one'"
     >
-      <BandSection
-        position="main-headliner"
-        @click="emitOpen('headliner', `${day} Headliner`)"
-        :band="bands.headliner.band"
-        :size="bands.headliner.size"
-        :chosenImage="bands.headliner.chosenImage"
-        :alwaysHighlight="alwaysHighlight"
+      <PosterRow
+        :row="bands.headliner"
+        :placeholder="`CLICK TO ADD ${day.toUpperCase()} HEADLINER`"
+        :alwaysHighlight="alwaysHighlight || activeRowKey === 'headliner'"
+        :showPlaceholderAlways="!posterStarted"
+        :hideEditingUI="hideEditingUI"
+        @click="$emit('open', slug, 'headliner', `${day} Headliner`)"
       />
-      <BandSection
+
+      <PosterRow
         v-if="coHeadliner"
-        position="main-headliner"
-        @click="emitOpen('coHeadliner', `${day} Headliner`)"
-        :band="bands.coHeadliner.band"
-        :size="bands.coHeadliner.size"
-        :chosenImage="bands.coHeadliner.chosenImage"
-        :alwaysHighlight="alwaysHighlight"
+        :row="bands.coHeadliner"
+        :placeholder="`CLICK TO ADD ${day.toUpperCase()} CO-HEADLINER`"
+        :alwaysHighlight="alwaysHighlight || activeRowKey === 'coHeadliner'"
+        :showPlaceholderAlways="!posterStarted"
+        :hideEditingUI="hideEditingUI"
+        @click="$emit('open', slug, 'coHeadliner', `${day} Co-Headliner`)"
       />
     </div>
 
-    <!-- Second row -->
-    <div class="sub-grid">
-      <BandSection
-        v-for="(slot, i) in bands.secondRow"
-        :key="`second-${i}`"
-        position="main-sub"
-        @click="emitOpen(`secondRow.${i}`, `${day} Band`)"
-        :band="slot.band"
-        :size="slot.size"
-        :chosenImage="slot.chosenImage"
-        :alwaysHighlight="alwaysHighlight"
-      />
-    </div>
+    <PosterRow
+      class="second-row"
+      :row="bands.secondRow"
+      :placeholder="`CLICK TO ADD ${day.toUpperCase()} BANDS`"
+      :alwaysHighlight="alwaysHighlight || activeRowKey === 'secondRow'"
+      :showPlaceholderAlways="!posterStarted"
+      :hideEditingUI="hideEditingUI"
+      @click="$emit('open', slug, 'secondRow', `${day} Second Row`)"
+    />
 
-    <!-- Third row -->
-    <div class="sub-grid-four">
-      <BandSection
-        v-for="(slot, i) in bands.thirdRow"
-        :key="`third-${i}`"
-        position="main-sub"
-        @click="emitOpen(`thirdRow.${i}`, `${day} Band`)"
-        :band="slot.band"
-        :size="slot.size"
-        :chosenImage="slot.chosenImage"
-        :alwaysHighlight="alwaysHighlight"
-      />
-    </div>
+    <PosterRow
+      class="third-row"
+      :row="bands.thirdRow"
+      :placeholder="`CLICK TO ADD ${day.toUpperCase()} LOWER LINEUP`"
+      :alwaysHighlight="alwaysHighlight || activeRowKey === 'thirdRow'"
+      :showPlaceholderAlways="!posterStarted"
+      :hideEditingUI="hideEditingUI"
+      @click="$emit('open', slug, 'thirdRow', `${day} Third Row`)"
+    />
 
-    <!-- Inputs (optional, could also be slotted in) -->
-    <div class="input-grid">
-      <BandInput size="medium" />
-      <BandInput size="small" />
-    </div>
+    <PosterRow
+      class="fourth-row"
+      :row="bands.fourthRow"
+      :placeholder="`CLICK TO ADD ${day.toUpperCase()} EXTRA BANDS`"
+      :alwaysHighlight="alwaysHighlight || activeRowKey === 'fourthRow'"
+      :showPlaceholderAlways="!posterStarted"
+      :hideEditingUI="hideEditingUI"
+      @click="$emit('open', slug, 'fourthRow', `${day} Extra Row`)"
+    />
+
+    <PosterRow
+      class="fifth-row"
+      :row="bands.fifthRow"
+      :placeholder="`CLICK TO ADD ${day.toUpperCase()} MORE BANDS`"
+      :alwaysHighlight="alwaysHighlight || activeRowKey === 'fifthRow'"
+      :showPlaceholderAlways="!posterStarted"
+      :hideEditingUI="hideEditingUI"
+      @click="$emit('open', slug, 'fifthRow', `${day} Final Row`)"
+    />
   </div>
 </template>
 
 <script>
-import BandSection from "../BandGrid/BandSection.vue";
-import BandInput from "../BandGrid/BandInput.vue";
+import PosterRow from "./PosterRow.vue";
 
 export default {
   name: "DayGrid",
-  components: { BandSection, BandInput },
+  components: { PosterRow },
   props: {
-    day: { type: String, required: true }, // e.g. "Thursday"
-    slug: { type: String, required: true }, // e.g. "dayOne"
-    bands: { type: Object, required: true }, // nested object with headliner/coHeadliner/secondRow/thirdRow
+    day: { type: String, required: true },
+    slug: { type: String, required: true },
+    bands: { type: Object, required: true },
     coHeadliner: { type: Boolean, default: false },
     alwaysHighlight: { type: Boolean, default: false },
+    activeRowKey: { type: String, default: null },
+    posterStarted: { type: Boolean, default: false },
+    hideEditingUI: { type: Boolean, default: false },
   },
   emits: ["open"],
-  methods: {
-    emitOpen(position, title) {
-      this.$emit("open", { slug: this.slug, position, title });
-    },
-  },
 };
 </script>
 
@@ -95,26 +98,39 @@ export default {
 .band-grid {
   height: 27.5%;
   box-sizing: border-box;
-  margin: 0;        /* make sure no leftover margins */
-  flex-shrink: 0;   /* don’t let items squeeze weirdly */
+  margin: 0;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1%;
 }
-
 
 .headliners-row.headliners-one {
   display: grid;
-  grid-template-columns: 1fr; /* single column */
-  height: 31%;
+  grid-template-columns: 1fr;
+  height: 29%;
 }
 
 .headliners-row.headliners-two {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* two equal columns */
-  height: 31%;
+  grid-template-columns: 1fr 1fr;
+  height: 29%;
   gap: 0;
 }
 
-.headliners-row.two-headliners > * {
-  flex: 1; /* equal width for both headliners */
-  max-width: 50%; /* optional, to prevent them from getting too wide */
+.second-row {
+  height: 17%;
+}
+
+.third-row {
+  height: 14%;
+}
+
+.fourth-row {
+  height: 11%;
+}
+
+.fifth-row {
+  height: 11%;
 }
 </style>

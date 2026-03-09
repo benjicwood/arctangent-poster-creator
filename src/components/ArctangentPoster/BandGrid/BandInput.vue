@@ -29,7 +29,7 @@ export default {
   text-align: center;
   color: white;
   font-family: "NeueHaasUnica", sans-serif;
-  font-weight: 700;
+  font-weight: 800;
   /* text-transform: uppercase; */
 }
 
