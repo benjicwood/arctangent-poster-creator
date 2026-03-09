@@ -107,6 +107,15 @@ export default {
       setTimeout(() => (this.toast.show = false), duration);
     },
 
+    async withCleanPosterRender(fn) {
+      const grid = this.$refs.bandGrid;
+      if (!grid) return fn();
+
+      await grid.runWithoutEditingUI(async () => {
+        await fn();
+      });
+    },
+
     async downloadPoster() {
       await this.withCleanPosterRender(async () => {
         const node = this.$refs.poster;
@@ -210,14 +219,6 @@ export default {
 
       return res.json();
     },
-  },
-  async withCleanPosterRender(fn) {
-    const grid = this.$refs.bandGrid;
-    if (!grid) return fn();
-
-    await grid.runWithoutEditingUI(async () => {
-      await fn();
-    });
   },
 };
 </script>
