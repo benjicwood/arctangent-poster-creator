@@ -63,13 +63,13 @@
 
         <!-- ✅ Text controls (always available once something is typed or already exists) -->
         <div v-if="hasBand || inputText.trim().length" class="slider-container">
-          <label for="slider">Text size: {{ sliderValue }}</label>
+          <label for="slider">Text size</label>
           <input
             type="range"
             id="slider"
             v-model.number="sliderValue"
             :min="1"
-            :max="7"
+            :max="8"
             :step="1"
             @input="emitSize"
           />

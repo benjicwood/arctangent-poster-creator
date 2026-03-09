@@ -32,6 +32,7 @@ const sizeMap = {
   5: 22,
   6: 28,
   7: 36,
+  8: 44,
 };
 
 export default {
@@ -70,7 +71,12 @@ export default {
     },
 
     basePx() {
-      return sizeMap[this.row?.size] || 18;
+      const size = Number(this.row?.size) || 5;
+      const min = Number(this.row?.minPx) || 10;
+      const max = Number(this.row?.maxPx) || 18;
+
+      const t = (size - 1) / 9;
+      return Math.round(min + t * (max - min));
     },
 
     minPx() {
@@ -85,8 +91,8 @@ export default {
     },
 
     rowClass() {
-      if (this.row?.size <= 2) return "is-small-row";
-      if (this.row?.size >= 6) return "is-headliner-row";
+      if (this.row?.size <= 3) return "is-small-row";
+      if (this.row?.size >= 8) return "is-headliner-row";
       return "";
     },
 

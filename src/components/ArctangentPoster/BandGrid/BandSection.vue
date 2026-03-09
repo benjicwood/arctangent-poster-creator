@@ -82,7 +82,7 @@ export default {
       const scale = maxWidth / el.scrollWidth;
 
       // Prevent text becoming microscopic
-      const clamped = Math.max(scale, 0.55);
+      const clamped = Math.max(Math.min(scale, 1.15), 0.55);
 
       el.style.transform = `scale(${clamped})`;
     },
@@ -140,6 +140,9 @@ export default {
 }
 .text-size-7 .band-text {
   font-size: 36px;
+}
+.text-size-8 .band-text {
+  font-size: 44px;
 }
 
 /* Font weights */

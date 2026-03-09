@@ -121,15 +121,19 @@ export default {
       this.optionsShown = false;
     },
 
-    resetInput() {
+    resetInput({ keepFocus = false } = {}) {
       this.searchFilter = "";
       this.selected = null;
       this.hideOptions();
 
       this.$emit("update:modelValue", "");
 
-      if (this.$refs.inputEl) {
+      if (!keepFocus && this.$refs.inputEl) {
         this.$refs.inputEl.blur();
+      }
+
+      if (keepFocus && this.$refs.inputEl) {
+        this.$refs.inputEl.focus();
       }
     },
 
@@ -141,7 +145,7 @@ export default {
       this.$emit("selected", option);
       this.$emit("commit", { type: "option", text: label, option });
 
-      this.resetInput();
+      this.resetInput({ keepFocus: true });
 
       requestAnimationFrame(() => {
         this.suppressBlurCommit = false;
@@ -152,7 +156,7 @@ export default {
       const text = (this.searchFilter || "").trim();
 
       if (!text) {
-        this.resetInput();
+        this.resetInput({ keepFocus: true });
         this.$emit("commit", { type: "clear", text: "" });
         return;
       }
@@ -169,7 +173,7 @@ export default {
         this.$emit("commit", { type: "custom", text });
       }
 
-      this.resetInput();
+      this.resetInput({ keepFocus: true });
     },
 
     onBlurCommit() {
@@ -212,11 +216,10 @@ export default {
 
 .dropdown {
   min-width: 160px;
-  height: 40px;
   position: relative;
-  margin: 10px 1px;
-  display: inline-block;
-  vertical-align: middle;
+  margin: 0;
+  display: block;
+  width: 100%;
 }
 
 .dropdown-toggle input {

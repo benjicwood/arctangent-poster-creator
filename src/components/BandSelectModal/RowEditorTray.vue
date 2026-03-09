@@ -3,16 +3,29 @@
     <div v-if="row" class="editor-tray-inner">
       <div class="editor-tray-body">
         <div class="search-block">
-          <SearchDropdown
-            :id="row.bands.length"
-            :options="bands"
-            v-model="inputText"
-            @commit="onCommit"
-            :placeholder="addPlaceholder"
-          />
+          <div class="search-row">
+            <SearchDropdown
+              ref="searchDropdown"
+              :id="row.bands.length"
+              :options="bands"
+              v-model="inputText"
+              @commit="onCommit"
+              :placeholder="addPlaceholder"
+            />
+
+            <button
+              type="button"
+              class="add-band-btn"
+              :disabled="!canAddBand"
+              @click="onAddButtonClick"
+            >
+              Add band
+            </button>
+          </div>
 
           <div class="helper">
-            {{ row.bands.length }} / {{ row.maxBands }} bands in this row
+            {{ row.bands.length }} / {{ row.maxBands }} bands in this row ·
+            Press Enter or click Add band
           </div>
         </div>
 
@@ -115,28 +128,28 @@
 
         <div class="controls-row">
           <div class="control-group grow">
-            <label for="row-size">Text size: {{ sliderValue }}</label>
+            <label for="row-size">Text size</label>
             <input
               id="row-size"
               type="range"
               v-model.number="sliderValue"
               min="1"
-              max="7"
+              max="10"
               step="1"
               @input="$emit('set-size', sliderValue)"
             />
           </div>
 
           <div class="control-group weight-group">
-            <label for="row-weight">Weight</label>
+            <label for="row-weight">Text weight</label>
             <select
               id="row-weight"
               v-model.number="fontWeight"
               @change="$emit('set-weight', fontWeight)"
             >
-              <option :value="200">Ultra Light</option>
+              <option :value="200">Light</option>
               <option :value="500">Medium</option>
-              <option :value="900">Black</option>
+              <option :value="900">Bold</option>
             </select>
           </div>
 
@@ -185,7 +198,7 @@ export default {
     return {
       bands,
       inputText: "",
-      sliderValue: 4,
+      sliderValue: 5,
       fontWeight: 500,
       bandsExpanded: false,
     };
@@ -193,14 +206,20 @@ export default {
 
   computed: {
     addPlaceholder() {
-      if (!this.row) return "Search and add a band";
+      if (!this.row) return "Search for a band or type your own";
       return this.row.bands.length >= this.row.maxBands
         ? "Row is full"
-        : "Search and add a band";
+        : "Search for a band or type your own";
     },
 
     showCoHeadlinerToggle() {
       return this.rowKey === "headliner" && this.slug !== "dayFour";
+    },
+
+    canAddBand() {
+      if (!this.row) return false;
+      if (this.row.bands.length >= this.row.maxBands) return false;
+      return !!this.inputText.trim();
     },
   },
 
@@ -209,7 +228,7 @@ export default {
       immediate: true,
       handler(row) {
         if (!row) return;
-        this.sliderValue = Number(row.size) || 4;
+        this.sliderValue = Number(row.size) || 5;
 
         const allowed = [200, 500, 900];
         this.fontWeight = allowed.includes(Number(row.weight))
@@ -223,6 +242,11 @@ export default {
   },
 
   methods: {
+    onAddButtonClick() {
+      if (!this.row) return;
+      this.$refs.searchDropdown?.commitTypedText();
+    },
+
     onCommit(payload) {
       if (!this.row) return;
 
@@ -337,9 +361,33 @@ export default {
   gap: 0.15rem;
 }
 
+.search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: start;
+}
+
 .helper {
   color: #666;
   font-size: 0.82rem;
+}
+
+.add-band-btn {
+  border: none;
+  background: #711214;
+  color: white;
+  padding: 0.7rem 0.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  height: fit-content;
+
+  &:disabled {
+    background: #c9c9c9;
+    color: #666;
+    cursor: not-allowed;
+  }
 }
 
 .toggle-wrap label {
@@ -480,6 +528,14 @@ select {
 
   .editor-tray.top .editor-tray-inner {
     border-radius: 0 0 12px 12px;
+  }
+
+  .search-row {
+    grid-template-columns: 1fr;
+  }
+
+  .add-band-btn {
+    width: 100%;
   }
 
   .selected-item {

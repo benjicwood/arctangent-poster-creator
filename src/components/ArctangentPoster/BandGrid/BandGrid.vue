@@ -110,10 +110,11 @@ import PosterRow from "./PosterRow.vue";
 import RowEditorTray from "../../BandSelectModal/RowEditorTray.vue";
 
 const makeRow = ({
-  size = 4,
+  size = 5,
   weight = 500,
   maxBands = 5,
   minPx = 10,
+  maxPx = 18,
   allowWrap = false,
 } = {}) => ({
   bands: [],
@@ -121,40 +122,80 @@ const makeRow = ({
   weight,
   maxBands,
   minPx,
+  maxPx,
   allowWrap,
 });
 
 const makeStandardDay = () => ({
   headliner: makeRow({
-    size: 6,
+    size: 7,
     weight: 900,
     maxBands: 1,
     minPx: 18,
+    maxPx: 56,
     allowWrap: true,
   }),
   coHeadliner: makeRow({
-    size: 6,
+    size: 7,
     weight: 900,
     maxBands: 1,
     minPx: 18,
+    maxPx: 50,
     allowWrap: true,
   }),
-  secondRow: makeRow({ size: 5, weight: 500, maxBands: 5, minPx: 11 }),
-  thirdRow: makeRow({ size: 3, weight: 500, maxBands: 8, minPx: 9 }),
-  fourthRow: makeRow({ size: 2, weight: 500, maxBands: 10, minPx: 8 }),
-  fifthRow: makeRow({ size: 2, weight: 500, maxBands: 10, minPx: 8 }),
+  secondRow: makeRow({
+    size: 6,
+    weight: 500,
+    maxBands: 5,
+    minPx: 11,
+    maxPx: 28,
+  }),
+  thirdRow: makeRow({
+    size: 5,
+    weight: 500,
+    maxBands: 8,
+    minPx: 9,
+    maxPx: 20,
+  }),
+  fourthRow: makeRow({
+    size: 4,
+    weight: 500,
+    maxBands: 10,
+    minPx: 8,
+    maxPx: 15,
+  }),
+  fifthRow: makeRow({
+    size: 4,
+    weight: 500,
+    maxBands: 10,
+    minPx: 8,
+    maxPx: 15,
+  }),
 });
 
 const makeWednesday = () => ({
   headliner: makeRow({
-    size: 6,
+    size: 7,
     weight: 900,
     maxBands: 1,
     minPx: 18,
+    maxPx: 56,
     allowWrap: true,
   }),
-  secondRow: makeRow({ size: 4, weight: 500, maxBands: 4, minPx: 10 }),
-  fourthRow: makeRow({ size: 2, weight: 500, maxBands: 8, minPx: 8 }),
+  secondRow: makeRow({
+    size: 5,
+    weight: 500,
+    maxBands: 4,
+    minPx: 10,
+    maxPx: 24,
+  }),
+  fourthRow: makeRow({
+    size: 4,
+    weight: 500,
+    maxBands: 8,
+    minPx: 8,
+    maxPx: 14,
+  }),
 });
 
 export default {
@@ -358,7 +399,7 @@ export default {
     setRowSize(size) {
       const row = this.activeRow;
       if (!row) return;
-      row.size = Number(size) || 4;
+      row.size = Number(size) || 5;
     },
 
     setRowWeight(weight) {
@@ -423,7 +464,7 @@ export default {
 }
 
 .wednesday-headliner {
-  height: 52%;
+  height: 48%;
 }
 
 .wednesday-second-row {
@@ -431,6 +472,6 @@ export default {
 }
 
 .wednesday-fourth-row {
-  height: 14%;
+  height: 18%;
 }
 </style>
