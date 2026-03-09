@@ -235,7 +235,7 @@ export default {
   height: 1.5rem;
   width: 100%;
   box-sizing: border-box;
-  height: 2rem;
+  height: 2.5rem;
 }
 
 .dropdown-toggle:hover input {

@@ -464,7 +464,7 @@ export default {
 }
 
 .wednesday-headliner {
-  height: 48%;
+  height: 44%;
 }
 
 .wednesday-second-row {
@@ -472,6 +472,6 @@ export default {
 }
 
 .wednesday-fourth-row {
-  height: 18%;
+  height: 22%;
 }
 </style>

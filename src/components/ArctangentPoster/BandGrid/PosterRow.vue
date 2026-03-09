@@ -150,32 +150,64 @@ export default {
         return;
       }
 
-      const spacingCandidates = this.getSpacingCandidates(
-        this.baseLetterSpacing,
-      );
+      // Step 1: find the largest size that fits
+      let fittedPx = this.minPx;
 
-      for (let px = this.basePx; px >= this.minPx; px--) {
-        for (const spacing of spacingCandidates) {
-          if (
-            this.textFits({
-              text: this.displayText,
-              fontSize: px,
-              weight: this.row.weight,
-              letterSpacing: spacing,
-              maxWidth,
-              maxHeight,
-              allowWrap: !!this.row.allowWrap,
-            })
-          ) {
-            this.resolvedPx = px;
-            this.resolvedLetterSpacing = `${spacing}em`;
-            return;
-          }
+      for (let px = 120; px >= this.minPx; px--) {
+        if (
+          this.textFits({
+            text: this.displayText,
+            fontSize: px,
+            weight: this.row.weight,
+            letterSpacing: this.baseLetterSpacing,
+            maxWidth,
+            maxHeight,
+            allowWrap: !!this.row.allowWrap,
+          })
+        ) {
+          fittedPx = px;
+          break;
+        }
+      }
+
+      // Step 2: slider controls scale relative to fitted size
+      const scaleMap = {
+        1: 0.55,
+        2: 0.65,
+        3: 0.75,
+        4: 0.85,
+        5: 0.95,
+        6: 1.0,
+        7: 1.05,
+        8: 1.1,
+        9: 1.15,
+        10: 1.2,
+      };
+
+      const size = Number(this.row?.size) || 5;
+      let targetPx = Math.round(fittedPx * (scaleMap[size] || 1));
+
+      // Step 3: ensure it still fits
+      for (let px = targetPx; px >= this.minPx; px--) {
+        if (
+          this.textFits({
+            text: this.displayText,
+            fontSize: px,
+            weight: this.row.weight,
+            letterSpacing: this.baseLetterSpacing,
+            maxWidth,
+            maxHeight,
+            allowWrap: !!this.row.allowWrap,
+          })
+        ) {
+          this.resolvedPx = px;
+          this.resolvedLetterSpacing = `${this.baseLetterSpacing}em`;
+          return;
         }
       }
 
       this.resolvedPx = this.minPx;
-      this.resolvedLetterSpacing = `${Math.max(this.baseLetterSpacing - 0.02, 0)}em`;
+      this.resolvedLetterSpacing = `${this.baseLetterSpacing}em`;
     },
 
     getSpacingCandidates(base) {
