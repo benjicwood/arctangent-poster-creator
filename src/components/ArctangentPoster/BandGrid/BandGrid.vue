@@ -5,7 +5,7 @@
       <PosterRow
         class="wednesday-headliner"
         :row="days.dayFour.headliner"
-        placeholder="CLICK TO ADD WEDNESDAY HEADLINER"
+        placeholder="CLICK TO ADD WEDNESDAY HEADLINER(S)"
         @click="openEditor('dayFour', 'headliner', 'Wednesday Headliner')"
         :alwaysHighlight="
           alwaysHighlight || isActiveRow('dayFour', 'headliner')
@@ -177,7 +177,7 @@ const makeWednesday = () => ({
   headliner: makeRow({
     size: 7,
     weight: 900,
-    maxBands: 1,
+    maxBands: 2,
     minPx: 18,
     maxPx: 56,
     allowWrap: true,

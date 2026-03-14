@@ -12,7 +12,7 @@
     >
       <PosterRow
         :row="bands.headliner"
-        :placeholder="`CLICK TO ADD ${day.toUpperCase()} HEADLINER`"
+        :placeholder="`CLICK TO ADD ${day.toUpperCase()} HEADLINER(S)`"
         :alwaysHighlight="alwaysHighlight || activeRowKey === 'headliner'"
         :showPlaceholderAlways="!posterStarted"
         :hideEditingUI="hideEditingUI"
