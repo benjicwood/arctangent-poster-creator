@@ -450,7 +450,6 @@ export default {
   padding-bottom: 8%;
   padding-left: 7%;
   padding-right: 4%;
-  border: 3px solid white;
 }
 
 .band-grid-wednesday {

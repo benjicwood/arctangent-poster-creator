@@ -100,7 +100,7 @@
 
 <script>
 import SearchDropdown from "./SearchDropdown.vue";
-import { bands } from "@benjicwood/artist-assets";
+import { bands } from "../../assets/data/bands";
 
 export default {
   name: "BandSelectModal",
