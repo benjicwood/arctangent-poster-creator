@@ -106,6 +106,10 @@ export default {
   },
 
   methods: {
+    focus() {
+      this.$refs.inputEl?.focus();
+    },
+
     optionLabel(option) {
       return (option?.name || option?.id || "-").toString();
     },

@@ -15,7 +15,7 @@
         2027
       </button>
     </div> -->
-    <div class="poster-wrapper" ref="poster">
+    <div class="poster-wrapper" ref="poster" @click.once="handleFirstInteraction">
       <img
         class="poster-background"
         :src="backgroundSrc"
@@ -23,21 +23,32 @@
       />
       <BandGrid ref="bandGrid" :alwaysHighlight="isMobile && posterEmpty" />
       <!-- Click to start overlay -->
-      <div v-if="isMobile && posterEmpty" class="click-start">
-        click a section to start
+      <div v-if="isMobile && !hasStartedEditing" class="click-start">
+        CLICK A SECTION TO START
       </div>
     </div>
   </div>
 
   <!-- Fixed bottom bar -->
   <div class="button-row" :class="{ hidden: controlsHidden }">
-    <button class="download-btn" @click="downloadPoster">Export Poster</button>
+    <button
+      class="download-btn"
+      :disabled="isExporting"
+      @click="downloadPoster"
+    >
+      Export Poster
+    </button>
 
-    <button v-if="isMobile" class="share-btn" @click="sharePoster">
+    <button
+      v-if="isMobile"
+      :disabled="isExporting"
+      class="share-btn"
+      @click="sharePoster"
+    >
       Share Poster
     </button>
 
-    <button v-else class="copy-btn" @click="copyPoster">
+    <button v-else class="copy-btn" :disabled="isExporting" @click="copyPoster">
       Copy to Clipboard
     </button>
   </div>
@@ -69,6 +80,8 @@ export default {
       selectedYear: "2027",
       isMobile: false,
       controlsHidden: false,
+      isExporting: false,
+      hasStartedEditing: false,
       toast: { show: false, message: "", type: "success" },
     };
   },
@@ -107,6 +120,10 @@ export default {
       setTimeout(() => (this.toast.show = false), duration);
     },
 
+    handleFirstInteraction() {
+      this.hasStartedEditing = true;
+    },
+
     async withCleanPosterRender(fn) {
       const grid = this.$refs.bandGrid;
       if (!grid) return fn();
@@ -117,86 +134,111 @@ export default {
     },
 
     async downloadPoster() {
-      await this.withCleanPosterRender(async () => {
-        const node = this.$refs.poster;
+      if (this.isExporting) return;
+      this.isExporting = true;
 
-        const blob = await toBlob(node, {
-          backgroundColor: "#000",
-          pixelRatio: 2,
+      try {
+        await this.withCleanPosterRender(async () => {
+          const node = this.$refs.poster;
+
+          const blob = await toBlob(node, {
+            backgroundColor: "#000",
+            pixelRatio: 2,
+          });
+
+          const dataUrl = await toPng(node, {
+            quality: 1,
+            cacheBust: true,
+            backgroundColor: "#000",
+            pixelRatio: 2,
+          });
+
+          const link = document.createElement("a");
+          link.download = `arctangent-poster-${this.selectedYear}.png`;
+          link.href = dataUrl;
+          link.click();
+
+          try {
+            await this.uploadPosterToCloudinary(blob);
+            this.showToast("Poster downloaded!");
+          } catch (e) {
+            console.error(e);
+            this.showToast("Poster downloaded", "error");
+          }
         });
-
-        const dataUrl = await toPng(node, {
-          quality: 1,
-          cacheBust: true,
-          backgroundColor: "#000",
-          pixelRatio: 2,
-        });
-
-        const link = document.createElement("a");
-        link.download = `arctangent-poster-${this.selectedYear}.png`;
-        link.href = dataUrl;
-        link.click();
-
-        try {
-          await this.uploadPosterToCloudinary(blob);
-          this.showToast("Poster downloaded!");
-        } catch (e) {
-          console.error(e);
-          this.showToast("Poster downloaded", "error");
-        }
-      });
+      } finally {
+        this.isExporting = false;
+      }
     },
 
     async sharePoster() {
-      await this.withCleanPosterRender(async () => {
-        const node = this.$refs.poster;
-        const blob = await toBlob(node, {
-          backgroundColor: "#000",
-          pixelRatio: 2,
-        });
+      if (this.isExporting) return;
+      this.isExporting = true;
 
-        const file = new File(
-          [blob],
-          `arctangent-poster-${this.selectedYear}.png`,
-          {
-            type: "image/png",
-          },
-        );
+      try {
+        await this.withCleanPosterRender(async () => {
+          const node = this.$refs.poster;
 
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: "Check out my festival poster!",
-            text: `Made this ArcTanGent Festival ${this.selectedYear} poster 🎶`,
+          const blob = await toBlob(node, {
+            backgroundColor: "#000",
+            pixelRatio: 2,
           });
-          this.showToast("Poster shared!");
-        } else {
-          const link = document.createElement("a");
-          link.download = `arctangent-poster-${this.selectedYear}.png`;
-          link.href = URL.createObjectURL(blob);
-          link.click();
-          this.showToast(
-            "Sharing not supported — poster downloaded instead.",
-            "error",
+
+          const file = new File(
+            [blob],
+            `arctangent-poster-${this.selectedYear}.png`,
+            {
+              type: "image/png",
+            },
           );
-        }
-      });
+
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: "Check out my festival poster!",
+              text: `Made this ArcTanGent Festival ${this.selectedYear} poster 🎶`,
+            });
+
+            this.showToast("Poster shared!");
+          } else {
+            const link = document.createElement("a");
+            link.download = `arctangent-poster-${this.selectedYear}.png`;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+
+            this.showToast(
+              "Sharing not supported — poster downloaded instead.",
+              "error",
+            );
+          }
+        });
+      } finally {
+        this.isExporting = false;
+      }
     },
 
     async copyPoster() {
-      await this.withCleanPosterRender(async () => {
-        const node = this.$refs.poster;
-        const blob = await toBlob(node, {
-          backgroundColor: "#000",
-          pixelRatio: 2,
+      if (this.isExporting) return;
+      this.isExporting = true;
+
+      try {
+        await this.withCleanPosterRender(async () => {
+          const node = this.$refs.poster;
+
+          const blob = await toBlob(node, {
+            backgroundColor: "#000",
+            pixelRatio: 2,
+          });
+
+          await navigator.clipboard.write([
+            new ClipboardItem({ "image/png": blob }),
+          ]);
+
+          this.showToast("Poster copied to clipboard!");
         });
-
-        await navigator.clipboard.write([
-          new ClipboardItem({ "image/png": blob }),
-        ]);
-
-        this.showToast("Poster copied to clipboard!");
-      });
+      } finally {
+        this.isExporting = false;
+      }
     },
     async uploadPosterToCloudinary(blob) {
       const form = new FormData();
@@ -315,6 +357,16 @@ export default {
 
   &:hover {
     background: #e73370;
+  }
+}
+
+.download-btn,
+.share-btn,
+.copy-btn {
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
   }
 }
 

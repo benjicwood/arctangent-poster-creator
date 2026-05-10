@@ -4,6 +4,8 @@
     :class="[
       'poster-row',
       rowClass,
+      `align-${row?.textAlign || 'center'}`,
+      `valign-${row?.verticalAlign || 'center'}`,
       {
         'always-highlight': alwaysHighlight && !hideEditingUI,
         'editing-ui-hidden': hideEditingUI,
@@ -101,8 +103,10 @@ export default {
         fontSize: `${this.resolvedPx}px`,
         fontWeight: String(Number(this.row?.weight) || 400),
         whiteSpace: this.row?.allowWrap ? "normal" : "nowrap",
-        lineHeight: this.row?.allowWrap ? "0.92" : "1",
+        // lineHeight: this.row?.allowWrap ? "0.92" : "1",
+        lineHeight: this.row?.allowWrap ? "1.05" : "1", // line height tbc
         letterSpacing: this.resolvedLetterSpacing,
+        textAlign: this.row?.textAlign || "center",
       };
     },
   },
@@ -187,6 +191,13 @@ export default {
       const size = Number(this.row?.size) || 5;
       let targetPx = Math.round(fittedPx * (scaleMap[size] || 1));
 
+      const isLikelySingleLine =
+        this.row?.capSparseText && this.displayText.length < 40;
+
+      if (isLikelySingleLine) {
+        targetPx = Math.min(targetPx, 20); // adjust until correct
+      }
+
       // Step 3: ensure it still fits
       for (let px = targetPx; px >= this.minPx; px--) {
         if (
@@ -247,7 +258,8 @@ export default {
       measure.style.fontSize = `${fontSize}px`;
       measure.style.letterSpacing = `${letterSpacing}em`;
       measure.style.textTransform = "uppercase";
-      measure.style.lineHeight = allowWrap ? "0.92" : "1";
+      measure.style.lineHeight = allowWrap ? "1.05" : "1";
+      // measure.style.lineHeight = allowWrap ? "0.92" : "1";
       measure.style.whiteSpace = allowWrap ? "normal" : "nowrap";
       measure.style.width = allowWrap ? `${maxWidth}px` : "auto";
       measure.style.maxWidth = `${maxWidth}px`;
@@ -298,6 +310,31 @@ export default {
   font-size: 0.72rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.align-left {
+  justify-content: flex-start;
+}
+
+.align-center {
+  justify-content: center;
+}
+
+.align-right {
+  justify-content: flex-end;
+}
+
+.valign-top {
+  align-items: flex-start;
+  padding-top: 0.6rem;
+}
+
+.valign-center {
+  align-items: center;
+}
+
+.valign-bottom {
+  align-items: flex-end;
 }
 
 .is-small-row .poster-row-text {

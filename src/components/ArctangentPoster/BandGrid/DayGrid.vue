@@ -41,33 +41,13 @@
     />
 
     <PosterRow
-      class="third-row"
-      :row="bands.thirdRow"
+      class="lower-lineup-row"
+      :row="bands.lowerLineup"
       :placeholder="`CLICK TO ADD ${day.toUpperCase()} LOWER LINEUP`"
-      :alwaysHighlight="alwaysHighlight || activeRowKey === 'thirdRow'"
+      :alwaysHighlight="alwaysHighlight || activeRowKey === 'lowerLineup'"
       :showPlaceholderAlways="!posterStarted"
       :hideEditingUI="hideEditingUI"
-      @click="$emit('open', slug, 'thirdRow', `${day} Third Row`)"
-    />
-
-    <PosterRow
-      class="fourth-row"
-      :row="bands.fourthRow"
-      :placeholder="`CLICK TO ADD ${day.toUpperCase()} EXTRA BANDS`"
-      :alwaysHighlight="alwaysHighlight || activeRowKey === 'fourthRow'"
-      :showPlaceholderAlways="!posterStarted"
-      :hideEditingUI="hideEditingUI"
-      @click="$emit('open', slug, 'fourthRow', `${day} Extra Row`)"
-    />
-
-    <PosterRow
-      class="fifth-row"
-      :row="bands.fifthRow"
-      :placeholder="`CLICK TO ADD ${day.toUpperCase()} MORE BANDS`"
-      :alwaysHighlight="alwaysHighlight || activeRowKey === 'fifthRow'"
-      :showPlaceholderAlways="!posterStarted"
-      :hideEditingUI="hideEditingUI"
-      @click="$emit('open', slug, 'fifthRow', `${day} Final Row`)"
+      @click="$emit('open', slug, 'lowerLineup', `${day} Lower Lineup`)"
     />
   </div>
 </template>
@@ -122,15 +102,7 @@ export default {
   height: 17%;
 }
 
-.third-row {
-  height: 14%;
-}
-
-.fourth-row {
-  height: 11%;
-}
-
-.fifth-row {
-  height: 11%;
+.lower-lineup-row {
+  height: 50%;
 }
 </style>
