@@ -102,6 +102,7 @@
               <div class="selected-name">
                 <template v-if="editingIndex === index">
                   <input
+                    :ref="`editInput-${index}`"
                     class="edit-band-input"
                     v-model="editingName"
                     @keydown.enter.prevent="saveBandEdit(index)"
@@ -338,6 +339,18 @@ export default {
     startBandEdit(index, band) {
       this.editingIndex = index;
       this.editingName = band?.name || "";
+
+      this.$nextTick(() => {
+        const input = this.$refs[`editInput-${index}`];
+
+        if (Array.isArray(input)) {
+          input[0]?.focus();
+          input[0]?.select();
+        } else {
+          input?.focus();
+          input?.select();
+        }
+      });
     },
 
     cancelBandEdit() {
@@ -673,71 +686,61 @@ select {
     width: 100vw;
     border-left: none;
     border-right: none;
-    max-height: 36vh;
+    max-height: 48vh;
+    overflow: hidden;
   }
 
-  .editor-tray.bottom .editor-tray-inner,
-  .editor-tray.top .editor-tray-inner {
-    border-radius: 0;
-  }
-
-  // .search-row {
-  //   grid-template-columns: 1fr;
-  // }
-
-  // .add-band-btn {
-  //   width: 100%;
-  // }
-
-  .search-row {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: stretch;
-  }
-
-  .add-band-btn {
-    width: auto;
-    height: 2.5rem;
-    padding: 0 0.75rem;
-  }
-
-  .selected-item {
+  .editor-tray-body {
+    padding: 0.75rem 1rem 1rem;
+    max-height: calc(42vh - 22px);
+    overflow: hidden;
+    display: flex;
     flex-direction: column;
-    align-items: flex-start;
   }
 
-  // .controls-row {
-  //   grid-template-columns: 1fr;
-  //   align-items: stretch;
-  // }
-  .control-group.grow {
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
-
-    input[type="range"] {
-      flex: 1;
-    }
+  .search-block,
+  .toggle-wrap,
+  .controls-row {
+    flex-shrink: 0;
   }
 
-  .control-group.grow label,
-  .control-group.grow {
-    font-size: 0.82rem;
+  .selected-wrap {
+    min-height: 0;
+    flex: 1;
+  }
+
+  .selected-list {
+    max-height: none;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .controls-row {
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.6rem;
+    align-items: end;
   }
 
   .control-group.grow {
     grid-column: 1 / -1;
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  // .done-wrap {
-  //   grid-column: span 3;
-  // }
+  .weight-group,
+  .align-group {
+    min-width: 0;
+  }
 
   .done-wrap {
+    grid-column: auto;
     justify-content: stretch;
   }
 
   .done-btn {
-    width: 100%;
+    width: auto;
+    height: 100%;
+    padding: 0.56rem 0.8rem;
   }
 }
 
