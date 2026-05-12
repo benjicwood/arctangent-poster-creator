@@ -99,7 +99,10 @@
     @move-band="moveBandInRow"
     @set-size="setRowSize"
     @set-weight="setRowWeight"
+    @set-align="setRowAlign"
+    @set-divider="setRowDivider"
     @co-headliner="handleCoHeadliner"
+    @edit-band="editBandInRow"
     @close="closeEditor"
   />
 </template>
@@ -116,6 +119,10 @@ const makeRow = ({
   minPx = 10,
   maxPx = 18,
   allowWrap = false,
+  textAlign = "center",
+  verticalAlign = "center",
+  capSparseText = false,
+  divider = "•",
 } = {}) => ({
   bands: [],
   size,
@@ -124,6 +131,10 @@ const makeRow = ({
   minPx,
   maxPx,
   allowWrap,
+  textAlign,
+  verticalAlign,
+  capSparseText,
+  divider,
 });
 
 const makeStandardDay = () => ({
@@ -150,26 +161,16 @@ const makeStandardDay = () => ({
     minPx: 11,
     maxPx: 28,
   }),
-  thirdRow: makeRow({
+
+  lowerLineup: makeRow({
     size: 5,
     weight: 500,
-    maxBands: 8,
-    minPx: 9,
-    maxPx: 20,
-  }),
-  fourthRow: makeRow({
-    size: 4,
-    weight: 500,
-    maxBands: 10,
+    maxBands: 28,
     minPx: 8,
-    maxPx: 15,
-  }),
-  fifthRow: makeRow({
-    size: 4,
-    weight: 500,
-    maxBands: 10,
-    minPx: 8,
-    maxPx: 15,
+    maxPx: 18,
+    allowWrap: true,
+    verticalAlign: "top",
+    capSparseText: true,
   }),
 });
 
@@ -272,6 +273,17 @@ export default {
       this.isEditorVisible = true;
     },
 
+    editBandInRow({ index, name }) {
+      const row = this.activeRow;
+      if (!row || index < 0 || index >= row.bands.length) return;
+
+      row.bands[index] = {
+        ...row.bands[index],
+        name: this.normalizeBandName(name),
+        source: row.bands[index].source || "custom",
+      };
+    },
+
     closeEditor() {
       this.isEditorVisible = false;
     },
@@ -326,9 +338,7 @@ export default {
         headliner: "headliner",
         coHeadliner: "co_headliner",
         secondRow: "main_support",
-        thirdRow: "midday_bands",
-        fourthRow: "afternoon_bands",
-        fifthRow: "opening_bands",
+        lowerLineup: "lower_lineup",
       };
 
       return map[rowKey] || rowKey;
@@ -406,6 +416,20 @@ export default {
       const row = this.activeRow;
       if (!row) return;
       row.weight = Number(weight) || 500;
+    },
+
+    setRowAlign(align) {
+      const row = this.activeRow;
+      if (!row) return;
+
+      row.textAlign = align;
+    },
+
+    setRowDivider(divider) {
+      const row = this.activeRow;
+      if (!row) return;
+
+      row.divider = divider;
     },
 
     handleCoHeadliner({ day, value }) {

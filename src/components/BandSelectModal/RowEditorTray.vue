@@ -1,6 +1,13 @@
 <template>
-  <div class="editor-tray" :class="[placement, { open: !!row }]">
+  <div
+    class="editor-tray"
+    :class="[placement, { open: !!row }]"
+    :style="mobileTrayStyle"
+  >
     <div v-if="row" class="editor-tray-inner">
+      <div class="tray-drag-handle" @pointerdown="startTrayDrag">
+        <span></span>
+      </div>
       <div class="editor-tray-body">
         <div class="search-block">
           <div class="search-row">
@@ -74,7 +81,7 @@
         </div>
 
         <div v-if="row.bands.length" class="selected-wrap">
-          <button
+          <!-- <button
             type="button"
             class="collapse-toggle"
             @click="bandsExpanded = !bandsExpanded"
@@ -84,17 +91,29 @@
                 ? "Hide selected bands"
                 : `Show selected bands (${row.bands.length})`
             }}
-          </button>
+          </button> -->
 
-          <div v-show="bandsExpanded" class="selected-list">
+          <div class="selected-list">
             <div
               v-for="(band, index) in row.bands"
               :key="`${band.id || band.name}-${index}`"
               class="selected-item"
             >
               <div class="selected-name">
-                {{ band.name.toUpperCase() }}
-                <small>({{ band.source }})</small>
+                <template v-if="editingIndex === index">
+                  <input
+                    :ref="`editInput-${index}`"
+                    class="edit-band-input"
+                    v-model="editingName"
+                    @keydown.enter.prevent="saveBandEdit(index)"
+                    @keydown.esc.prevent="cancelBandEdit"
+                  />
+                </template>
+
+                <template v-else>
+                  {{ band.name.toUpperCase() }}
+                  <small>({{ band.source }})</small>
+                </template>
               </div>
 
               <div class="selected-actions">
@@ -115,6 +134,30 @@
                 </button>
 
                 <button
+                  v-if="editingIndex !== index"
+                  type="button"
+                  @click="startBandEdit(index, band)"
+                >
+                  Edit
+                </button>
+
+                <button
+                  v-if="editingIndex === index"
+                  type="button"
+                  @click="saveBandEdit(index)"
+                >
+                  Save
+                </button>
+
+                <button
+                  v-if="editingIndex === index"
+                  type="button"
+                  @click="cancelBandEdit"
+                >
+                  Cancel
+                </button>
+
+                <button
                   type="button"
                   class="danger"
                   @click="$emit('remove-band', index)"
@@ -128,10 +171,13 @@
 
         <div class="controls-row">
           <div class="control-group grow">
-            <label for="row-size">Text size</label>
+            {{
+              isAutoCappedRow ? "Text size (add more bands first)" : "Text size"
+            }}
             <input
               id="row-size"
               type="range"
+              :disabled="isAutoCappedRow"
               v-model.number="sliderValue"
               min="1"
               max="10"
@@ -150,6 +196,35 @@
               <option :value="200">Light</option>
               <option :value="500">Medium</option>
               <option :value="900">Bold</option>
+            </select>
+          </div>
+
+          <div class="control-group align-group">
+            <label for="row-align">Text align</label>
+            <select
+              id="row-align"
+              :value="row.textAlign || 'center'"
+              @change="$emit('set-align', $event.target.value)"
+            >
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </div>
+
+          <div class="control-group divider-group">
+            <label for="row-divider">Divider</label>
+
+            <select
+              id="row-divider"
+              :value="row.divider || '•'"
+              @change="$emit('set-divider', $event.target.value)"
+            >
+              <option value="•">•</option>
+              <option value=".">.</option>
+              <option value="▪">▪</option>
+              <option value="|">|</option>
+              <option value=" ">Space</option>
             </select>
           </div>
 
@@ -173,10 +248,13 @@ export default {
   components: { SearchDropdown },
   emits: [
     "add-band",
+    "edit-band",
     "remove-band",
     "move-band",
     "set-size",
     "set-weight",
+    "set-align",
+    "set-divider",
     "co-headliner",
     "close",
   ],
@@ -200,7 +278,13 @@ export default {
       inputText: "",
       sliderValue: 5,
       fontWeight: 500,
-      bandsExpanded: false,
+      // bandsExpanded: false,
+      editingIndex: null,
+      editingName: "",
+      mobileOffsetY: 0,
+      dragStartY: 0,
+      dragStartOffsetY: 0,
+      isDraggingTray: false,
     };
   },
 
@@ -221,13 +305,32 @@ export default {
       if (this.row.bands.length >= this.row.maxBands) return false;
       return !!this.inputText.trim();
     },
+
+    isAutoCappedRow() {
+      if (!this.row) return false;
+
+      if (this.rowKey !== "lowerLineup") return false;
+
+      const text = this.row.bands.map((band) => band?.name || "").join(" • ");
+
+      return text.length < 40;
+    },
+    mobileTrayStyle() {
+      return {
+        "--tray-offset-y": `${this.mobileOffsetY}px`,
+      };
+    },
   },
 
   watch: {
     row: {
       immediate: true,
       handler(row) {
+        this.cancelBandEdit();
         if (!row) return;
+
+        this.mobileOffsetY = 0;
+
         this.sliderValue = Number(row.size) || 5;
 
         const allowed = [200, 500, 900];
@@ -236,7 +339,12 @@ export default {
           : 500;
 
         this.inputText = "";
-        this.bandsExpanded = false;
+        // this.bandsExpanded = false;
+
+        this.$nextTick(() => {
+          if (this.editingIndex !== null) return;
+          this.$refs.searchDropdown?.focus?.();
+        });
       },
     },
   },
@@ -245,6 +353,42 @@ export default {
     onAddButtonClick() {
       if (!this.row) return;
       this.$refs.searchDropdown?.commitTypedText();
+    },
+
+    startBandEdit(index, band) {
+      this.$refs.searchDropdown?.blurWithoutCommit?.();
+
+      this.editingIndex = index;
+      this.editingName = band?.name || "";
+
+      this.$nextTick(() => {
+        const input = this.$refs[`editInput-${index}`];
+
+        if (Array.isArray(input)) {
+          input[0]?.focus();
+          input[0]?.select();
+        } else {
+          input?.focus();
+          input?.select();
+        }
+      });
+    },
+
+    cancelBandEdit() {
+      this.editingIndex = null;
+      this.editingName = "";
+    },
+
+    saveBandEdit(index) {
+      const name = this.editingName.trim();
+      if (!name) return;
+
+      this.$emit("edit-band", {
+        index,
+        name,
+      });
+
+      this.cancelBandEdit();
     },
 
     onCommit(payload) {
@@ -292,6 +436,46 @@ export default {
 
       this.inputText = "";
     },
+    startTrayDrag(event) {
+      if (window.innerWidth > 700) return;
+
+      this.isDraggingTray = true;
+      this.dragStartY = event.clientY;
+      this.dragStartOffsetY = this.mobileOffsetY;
+
+      window.addEventListener("pointermove", this.onTrayDrag);
+      window.addEventListener("pointerup", this.stopTrayDrag);
+
+      event.preventDefault();
+    },
+
+    onTrayDrag(event) {
+      if (!this.isDraggingTray) return;
+
+      const diff = event.clientY - this.dragStartY;
+      const nextOffset = this.dragStartOffsetY + diff;
+
+      const trayHeight = this.$el.offsetHeight;
+
+      if (this.placement === "bottom") {
+        this.mobileOffsetY = Math.max(
+          -(window.innerHeight - trayHeight),
+          Math.min(nextOffset, 0),
+        );
+      } else {
+        this.mobileOffsetY = Math.max(
+          0,
+          Math.min(nextOffset, window.innerHeight - trayHeight),
+        );
+      }
+    },
+
+    stopTrayDrag() {
+      this.isDraggingTray = false;
+
+      window.removeEventListener("pointermove", this.onTrayDrag);
+      window.removeEventListener("pointerup", this.stopTrayDrag);
+    },
   },
 };
 </script>
@@ -322,37 +506,39 @@ export default {
 
 .editor-tray.bottom.open,
 .editor-tray.top.open {
-  transform: translateY(0);
+  transform: translateY(var(--tray-offset-y, 0));
 }
 
 .editor-tray-inner {
-  width: min(1100px, calc(100vw - 1rem));
+  // width: min(1100px, calc(100vw - 1rem));
   margin: 0 auto;
-  background: rgba(255, 255, 255, 0.98);
+  background: rgba(255, 255, 255, 1);
   color: #222;
-  border: 2px solid #711214;
+  border: 1px solid #111f18;
   font-family: "NeueHaasUnica", sans-serif;
   max-height: 32vh;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .editor-tray.bottom .editor-tray-inner {
   border-bottom: none;
-  border-radius: 14px 14px 0 0;
+  // border-radius: 14px 14px 0 0;
   box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .editor-tray.top .editor-tray-inner {
   border-top: none;
-  border-radius: 0 0 14px 14px;
+  // border-radius: 0 0 14px 14px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .editor-tray-body {
-  padding: 0.4rem 1rem 0.8rem;
+  padding: 1rem 2rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  max-height: 32vh;
+  overflow: hidden;
 }
 
 .search-block {
@@ -375,7 +561,7 @@ export default {
 
 .add-band-btn {
   border: none;
-  background: #711214;
+  background: #3c765b;
   color: white;
   padding: 0.7rem 0.9rem;
   border-radius: 8px;
@@ -403,23 +589,24 @@ export default {
   gap: 0.5rem;
 }
 
-.collapse-toggle {
-  align-self: flex-start;
-  border: none;
-  background: #e9ecef;
-  color: #333;
-  padding: 0.45rem 0.7rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
+// .collapse-toggle {
+//   align-self: flex-start;
+//   border: none;
+//   background: #e9ecef;
+//   color: #333;
+//   padding: 0.45rem 0.7rem;
+//   border-radius: 8px;
+//   cursor: pointer;
+//   font-size: 0.85rem;
+// }
 
 .selected-list {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
-  max-height: 150px;
-  overflow: auto;
+  max-height: 120px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
 }
 
 .selected-item {
@@ -465,8 +652,9 @@ export default {
 }
 
 .controls-row {
+  flex-shrink: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 170px auto;
+  grid-template-columns: minmax(0, 1fr) 140px 140px 120px auto;
   gap: 0.7rem;
   align-items: end;
 }
@@ -506,7 +694,7 @@ select {
 
 .done-btn {
   border: none;
-  background: #711214;
+  background: #3c765b;
   color: white;
   padding: 0.56rem 0.8rem;
   border-radius: 8px;
@@ -519,41 +707,95 @@ select {
     width: 100vw;
     border-left: none;
     border-right: none;
-    max-height: 36vh;
+    max-height: 48vh;
+    overflow: hidden;
   }
 
-  .editor-tray.bottom .editor-tray-inner {
-    border-radius: 12px 12px 0 0;
-  }
-
-  .editor-tray.top .editor-tray-inner {
-    border-radius: 0 0 12px 12px;
-  }
-
-  .search-row {
-    grid-template-columns: 1fr;
-  }
-
-  .add-band-btn {
-    width: 100%;
-  }
-
-  .selected-item {
+  .editor-tray-body {
+    padding: 0.75rem 1rem 1rem;
+    max-height: calc(42vh - 22px);
+    overflow: hidden;
+    display: flex;
     flex-direction: column;
-    align-items: flex-start;
+  }
+
+  .search-block,
+  .toggle-wrap,
+  .controls-row {
+    flex-shrink: 0;
+  }
+
+  .selected-wrap {
+    min-height: 0;
+    flex: 1;
+  }
+
+  .selected-list {
+    max-height: none;
+    min-height: 0;
+    overflow-y: auto;
   }
 
   .controls-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 0.6rem;
+    align-items: end;
+  }
+
+  .control-group.grow {
+    grid-column: 1 / -1;
+    flex-direction: column;
     align-items: stretch;
   }
 
+  .weight-group,
+  .align-group {
+    min-width: 0;
+  }
+
   .done-wrap {
+    grid-column: auto;
     justify-content: stretch;
   }
 
   .done-btn {
-    width: 100%;
+    width: auto;
+    height: 100%;
+    padding: 0.56rem 0.8rem;
+  }
+}
+
+input[type="range"]:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tray-drag-handle {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .tray-drag-handle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.45rem 0 0.2rem;
+    cursor: grab;
+    touch-action: none;
+
+    span {
+      width: 42px;
+      height: 5px;
+      border-radius: 999px;
+      background: #bbb;
+      display: block;
+    }
+  }
+}
+
+@media (max-width: 700px) {
+  .editor-tray {
+    transition: transform 0.15s ease;
   }
 }
 </style>

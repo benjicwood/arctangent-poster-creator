@@ -106,6 +106,23 @@ export default {
   },
 
   methods: {
+    focus() {
+      this.$refs.inputEl?.focus();
+    },
+
+    blur() {
+      this.$refs.inputEl?.blur();
+    },
+
+    blurWithoutCommit() {
+      this.suppressBlurCommit = true;
+      this.$refs.inputEl?.blur();
+
+      requestAnimationFrame(() => {
+        this.suppressBlurCommit = false;
+      });
+    },
+
     optionLabel(option) {
       return (option?.name || option?.id || "-").toString();
     },
