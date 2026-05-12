@@ -59,10 +59,17 @@ export default {
 
   computed: {
     displayText() {
+      const divider = this.row?.divider ?? "•";
+      // const joiner = divider === " " ? " " : `\u00A0${divider}\u00A0`;
+      // const joiner =
+      //   divider === " " ? "\u00A0\u00A0\u00A0\u00A0" : `\u00A0${divider}\u00A0`;
+      const joiner =
+        divider === " " ? "\u00A0\u00A0\u00A0\u00A0" : ` ${divider} `;
+
       return (this.row?.bands || [])
         .map((band) => (band?.name || "").trim().toUpperCase())
         .filter(Boolean)
-        .join(" • ");
+        .join(joiner);
     },
 
     shouldShowPlaceholder() {

@@ -100,6 +100,7 @@
     @set-size="setRowSize"
     @set-weight="setRowWeight"
     @set-align="setRowAlign"
+    @set-divider="setRowDivider"
     @co-headliner="handleCoHeadliner"
     @edit-band="editBandInRow"
     @close="closeEditor"
@@ -121,6 +122,7 @@ const makeRow = ({
   textAlign = "center",
   verticalAlign = "center",
   capSparseText = false,
+  divider = "•",
 } = {}) => ({
   bands: [],
   size,
@@ -132,6 +134,7 @@ const makeRow = ({
   textAlign,
   verticalAlign,
   capSparseText,
+  divider,
 });
 
 const makeStandardDay = () => ({
@@ -420,6 +423,13 @@ export default {
       if (!row) return;
 
       row.textAlign = align;
+    },
+
+    setRowDivider(divider) {
+      const row = this.activeRow;
+      if (!row) return;
+
+      row.divider = divider;
     },
 
     handleCoHeadliner({ day, value }) {

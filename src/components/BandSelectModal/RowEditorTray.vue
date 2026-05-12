@@ -212,6 +212,22 @@
             </select>
           </div>
 
+          <div class="control-group divider-group">
+            <label for="row-divider">Divider</label>
+
+            <select
+              id="row-divider"
+              :value="row.divider || '•'"
+              @change="$emit('set-divider', $event.target.value)"
+            >
+              <option value="•">•</option>
+              <option value=".">.</option>
+              <option value="▪">▪</option>
+              <option value="|">|</option>
+              <option value=" ">Space</option>
+            </select>
+          </div>
+
           <div class="done-wrap">
             <button type="button" class="done-btn" @click="$emit('close')">
               Done
@@ -238,6 +254,7 @@ export default {
     "set-size",
     "set-weight",
     "set-align",
+    "set-divider",
     "co-headliner",
     "close",
   ],
@@ -309,6 +326,7 @@ export default {
     row: {
       immediate: true,
       handler(row) {
+        this.cancelBandEdit();
         if (!row) return;
 
         this.mobileOffsetY = 0;
@@ -324,6 +342,7 @@ export default {
         // this.bandsExpanded = false;
 
         this.$nextTick(() => {
+          if (this.editingIndex !== null) return;
           this.$refs.searchDropdown?.focus?.();
         });
       },
@@ -337,6 +356,8 @@ export default {
     },
 
     startBandEdit(index, band) {
+      this.$refs.searchDropdown?.blurWithoutCommit?.();
+
       this.editingIndex = index;
       this.editingName = band?.name || "";
 
@@ -633,7 +654,7 @@ export default {
 .controls-row {
   flex-shrink: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 170px 170px auto;
+  grid-template-columns: minmax(0, 1fr) 140px 140px 120px auto;
   gap: 0.7rem;
   align-items: end;
 }
@@ -716,7 +737,7 @@ select {
   }
 
   .controls-row {
-    grid-template-columns: 1fr 1fr auto;
+    grid-template-columns: 1fr 1fr 1fr auto;
     gap: 0.6rem;
     align-items: end;
   }
