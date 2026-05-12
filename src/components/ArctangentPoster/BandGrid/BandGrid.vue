@@ -163,7 +163,7 @@ const makeStandardDay = () => ({
   }),
 
   lowerLineup: makeRow({
-    size: 5,
+    size: 1,
     weight: 500,
     maxBands: 28,
     minPx: 8,

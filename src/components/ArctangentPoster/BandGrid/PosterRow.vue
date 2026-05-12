@@ -198,14 +198,22 @@ export default {
       const size = Number(this.row?.size) || 5;
       let targetPx = Math.round(fittedPx * (scaleMap[size] || 1));
 
-      const isLikelySingleLine =
+      const isMobile = window.innerWidth <= 700;
+
+      const isSparseLowerLineup =
         this.row?.capSparseText && this.displayText.length < 40;
 
-      if (isLikelySingleLine) {
-        targetPx = Math.min(targetPx, 20); // adjust until correct
+      if (isSparseLowerLineup) {
+        targetPx = Math.min(targetPx, isMobile ? 14 : 22);
       }
 
-      // Step 3: ensure it still fits
+      const isLikelySingleLine =
+        !isMobile && this.row?.capSparseText && this.displayText.length < 40;
+
+      if (isLikelySingleLine) {
+        targetPx = Math.min(targetPx, 22);
+      }
+
       for (let px = targetPx; px >= this.minPx; px--) {
         if (
           this.textFits({
@@ -333,7 +341,7 @@ export default {
 
 .valign-top {
   align-items: flex-start;
-  padding-top: 0.6rem;
+  padding-top: 0.4rem;
 }
 
 .valign-center {

@@ -288,6 +288,15 @@ export default {
     };
   },
 
+  mounted() {
+    this.updateMobileTray();
+    window.addEventListener("resize", this.updateMobileTray);
+  },
+
+  beforeUnmount() {
+    window.removeEventListener("resize", this.updateMobileTray);
+  },
+
   computed: {
     addPlaceholder() {
       if (!this.row) return "Search for a band or type your own";
@@ -475,6 +484,9 @@ export default {
 
       window.removeEventListener("pointermove", this.onTrayDrag);
       window.removeEventListener("pointerup", this.stopTrayDrag);
+    },
+    updateMobileTray() {
+      this.isMobileTray = window.innerWidth <= 700;
     },
   },
 };
