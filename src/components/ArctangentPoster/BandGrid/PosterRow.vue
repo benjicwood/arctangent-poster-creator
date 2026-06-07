@@ -15,7 +15,27 @@
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
   >
-    <span v-if="displayText" class="poster-row-text" :style="textStyle">
+    <div v-if="showLogoLayout" class="poster-logo-row">
+      <div
+        v-for="(band, index) in logoBands"
+        :key="`${band.id || band.name}-${index}`"
+        class="poster-logo-item"
+        :style="{ transform: `scale(${logoScale})` }"
+      >
+        <img
+          v-if="band.logo"
+          :src="band.logo"
+          :alt="band.name"
+          class="poster-row-logo"
+        />
+
+        <span v-else class="poster-logo-fallback">
+          {{ band.name }}
+        </span>
+      </div>
+    </div>
+
+    <span v-else-if="displayText" class="poster-row-text" :style="textStyle">
       {{ displayText }}
     </span>
 
@@ -26,16 +46,7 @@
 </template>
 
 <script>
-const sizeMap = {
-  1: 11,
-  2: 13,
-  3: 15,
-  4: 18,
-  5: 22,
-  6: 28,
-  7: 36,
-  8: 44,
-};
+import { bands as artistBands } from "@benjicwood/artist-assets";
 
 export default {
   name: "PosterRow",
@@ -58,11 +69,28 @@ export default {
   },
 
   computed: {
+    isLogoMode() {
+      return this.row?.mode === "logos";
+    },
+
+    logoBands() {
+      if (!this.isLogoMode) return [];
+
+      return (this.row?.bands || []).map((band) => {
+        const assetBand = band?.id
+          ? artistBands.find((b) => b.id === band.id)
+          : null;
+
+        return {
+          ...band,
+          logo: assetBand?.logo || null,
+          name: (band?.name || "").trim().toUpperCase(),
+        };
+      });
+    },
+
     displayText() {
       const divider = this.row?.divider ?? "•";
-      // const joiner = divider === " " ? " " : `\u00A0${divider}\u00A0`;
-      // const joiner =
-      //   divider === " " ? "\u00A0\u00A0\u00A0\u00A0" : `\u00A0${divider}\u00A0`;
       const joiner =
         divider === " " ? "\u00A0\u00A0\u00A0\u00A0" : ` ${divider} `;
 
@@ -74,6 +102,7 @@ export default {
 
     shouldShowPlaceholder() {
       if (this.hideEditingUI) return false;
+      if (this.row?.bands?.length) return false;
       if (this.displayText) return false;
       if (this.showPlaceholderAlways) return true;
       return this.isHovered || this.alwaysHighlight;
@@ -110,11 +139,35 @@ export default {
         fontSize: `${this.resolvedPx}px`,
         fontWeight: String(Number(this.row?.weight) || 400),
         whiteSpace: this.row?.allowWrap ? "normal" : "nowrap",
-        // lineHeight: this.row?.allowWrap ? "0.92" : "1",
-        lineHeight: this.row?.allowWrap ? "1.05" : "1", // line height tbc
+        lineHeight: this.row?.allowWrap ? "1.05" : "1",
         letterSpacing: this.resolvedLetterSpacing,
         textAlign: this.row?.textAlign || "center",
       };
+    },
+    showLogoLayout() {
+      return (
+        this.isLogoMode &&
+        this.logoBands.length &&
+        this.logoBands.some((band) => band.logo)
+      );
+    },
+    logoScale() {
+      const size = Number(this.row?.size || 5);
+
+      const scaleMap = {
+        1: 0.4,
+        2: 0.5,
+        3: 0.6,
+        4: 0.75,
+        5: 0.9,
+        6: 1,
+        7: 1.1,
+        8: 1.2,
+        9: 1.3,
+        10: 1.4,
+      };
+
+      return scaleMap[size] || 1;
     },
   },
 
@@ -146,7 +199,7 @@ export default {
     fitRowText() {
       const container = this.$refs.rowEl;
 
-      if (!container || !this.displayText) {
+      if (!container || !this.displayText || this.isLogoMode) {
         this.resolvedPx = this.basePx;
         this.resolvedLetterSpacing = `${this.baseLetterSpacing}em`;
         return;
@@ -161,7 +214,6 @@ export default {
         return;
       }
 
-      // Step 1: find the largest size that fits
       let fittedPx = this.minPx;
 
       for (let px = 120; px >= this.minPx; px--) {
@@ -181,7 +233,6 @@ export default {
         }
       }
 
-      // Step 2: slider controls scale relative to fitted size
       const scaleMap = {
         1: 0.55,
         2: 0.65,
@@ -236,21 +287,6 @@ export default {
       this.resolvedLetterSpacing = `${this.baseLetterSpacing}em`;
     },
 
-    getSpacingCandidates(base) {
-      const candidates = [base];
-      const tighter1 = Math.max(base - 0.01, 0);
-      const tighter2 = Math.max(base - 0.02, 0);
-      const wider1 = base + 0.01;
-
-      if (!candidates.includes(tighter1)) candidates.push(tighter1);
-      if (!candidates.includes(tighter2)) candidates.push(tighter2);
-      if ((this.row?.size || 4) <= 2 && !candidates.includes(wider1)) {
-        candidates.push(wider1);
-      }
-
-      return candidates;
-    },
-
     textFits({
       text,
       fontSize,
@@ -274,7 +310,6 @@ export default {
       measure.style.letterSpacing = `${letterSpacing}em`;
       measure.style.textTransform = "uppercase";
       measure.style.lineHeight = allowWrap ? "1.05" : "1";
-      // measure.style.lineHeight = allowWrap ? "0.92" : "1";
       measure.style.whiteSpace = allowWrap ? "normal" : "nowrap";
       measure.style.width = allowWrap ? `${maxWidth}px` : "auto";
       measure.style.maxWidth = `${maxWidth}px`;
@@ -325,6 +360,42 @@ export default {
   font-size: 0.72rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.poster-logo-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3%;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+}
+
+.poster-logo-item {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.poster-row-logo {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.poster-logo-fallback {
+  color: white;
+  font-family: "NeueHaasUnica", sans-serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: clamp(10px, 1.4vw, 22px);
+  line-height: 1;
+  text-align: center;
 }
 
 .align-left {

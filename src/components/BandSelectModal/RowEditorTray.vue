@@ -169,10 +169,36 @@
           </div>
         </div>
 
-        <div class="controls-row">
+        <div class="controls-row" :class="{ 'logos-mode': isLogoMode }">
+            <div class="mode-toggle">
+            <span>Row style</span>
+
+            <button
+              type="button"
+              :class="{ active: (row.mode || 'text') === 'text' }"
+              @click="$emit('set-mode', 'text')"
+            >
+              Text
+            </button>
+
+            <button
+              v-if="canSwitchRowMode"
+              type="button"
+              :class="{ active: row.mode === 'logos' }"
+              @click="$emit('set-mode', 'logos')"
+            >
+              Logos
+            </button>
+          </div>
+
+          <!-- <template v-if="!isLogoMode"> -->
           <div class="control-group grow">
             {{
-              isAutoCappedRow ? "Text size (add more bands first)" : "Text size"
+              isLogoMode
+                ? "Logo size"
+                : isAutoCappedRow
+                  ? "Text size (add more bands first)"
+                  : "Text size"
             }}
             <input
               id="row-size"
@@ -186,7 +212,10 @@
             />
           </div>
 
-          <div class="control-group weight-group">
+          <div
+            :class="{ 'control-hidden': isLogoMode }"
+            class="control-group weight-group"
+          >
             <label for="row-weight">Text weight</label>
             <select
               id="row-weight"
@@ -199,7 +228,10 @@
             </select>
           </div>
 
-          <div class="control-group align-group">
+          <div
+            :class="{ 'control-hidden': isLogoMode }"
+            class="control-group align-group"
+          >
             <label for="row-align">Text align</label>
             <select
               id="row-align"
@@ -212,7 +244,10 @@
             </select>
           </div>
 
-          <div class="control-group divider-group">
+          <div
+            :class="{ 'control-hidden': isLogoMode }"
+            class="control-group divider-group"
+          >
             <label for="row-divider">Divider</label>
 
             <select
@@ -227,6 +262,7 @@
               <option value=" ">Space</option>
             </select>
           </div>
+          <!-- </template> -->
 
           <div class="done-wrap">
             <button type="button" class="done-btn" @click="$emit('close')">
@@ -241,7 +277,8 @@
 
 <script>
 import SearchDropdown from "./SearchDropdown.vue";
-import { bands } from "../../assets/data/bands";
+// import { bands } from "../../assets/data/bands";
+import { bands } from "@benjicwood/artist-assets";
 
 export default {
   name: "RowEditorTray",
@@ -257,6 +294,7 @@ export default {
     "set-divider",
     "co-headliner",
     "close",
+    "set-mode",
   ],
   props: {
     title: String,
@@ -318,7 +356,8 @@ export default {
     isAutoCappedRow() {
       if (!this.row) return false;
 
-      if (this.rowKey !== "lowerLineup") return false;
+      if (!["lowerLineupOne", "lowerLineupTwo"].includes(this.rowKey))
+        return false;
 
       const text = this.row.bands.map((band) => band?.name || "").join(" • ");
 
@@ -328,6 +367,20 @@ export default {
       return {
         "--tray-offset-y": `${this.mobileOffsetY}px`,
       };
+    },
+    isLogoMode() {
+      return this.row?.mode === "logos";
+    },
+    canSwitchRowMode() {
+      return (
+        this.rowKey === "headliner" ||
+        this.rowKey === "coHeadliner" ||
+        this.rowKey === "secondRow"
+      );
+    },
+
+    isWednesdayHeadliner() {
+      return this.slug === "dayFour" && this.rowKey === "headliner";
     },
   },
 
@@ -436,6 +489,10 @@ export default {
           source: "catalog",
         });
       } else {
+        if (this.row.mode === "logos") {
+          this.$emit("set-mode", "text");
+        }
+
         this.$emit("add-band", {
           id: null,
           name: text,
@@ -666,9 +723,40 @@ export default {
 .controls-row {
   flex-shrink: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 140px 140px 120px auto;
+  grid-template-columns: auto minmax(0, 1fr) 140px 140px 120px auto;
   gap: 0.7rem;
   align-items: end;
+}
+
+.mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f1f1f1;
+  border-radius: 999px;
+  padding: 0.25rem;
+  white-space: nowrap;
+
+  span {
+    font-size: 0.82rem;
+    color: #444;
+    padding: 0 0.35rem;
+  }
+
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 0.35rem 0.65rem;
+    cursor: pointer;
+    background: transparent;
+    color: #333;
+    font-size: 0.82rem;
+
+    &.active {
+      background: #3c765b;
+      color: white;
+    }
+  }
 }
 
 .control-group {
@@ -697,6 +785,15 @@ select {
 
 select {
   padding: 0.42rem;
+}
+.control-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+@media (max-width: 700px) {
+  .control-hidden {
+    display: none;
+  }
 }
 
 .done-wrap {
@@ -748,10 +845,24 @@ select {
     overflow-y: auto;
   }
 
-  .controls-row {
-    grid-template-columns: 1fr 1fr 1fr auto;
-    gap: 0.6rem;
-    align-items: end;
+  @media (max-width: 700px) {
+    .controls-row {
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      align-items: end;
+    }
+
+    .mode-toggle {
+      justify-self: start;
+    }
+
+    .control-group.grow {
+      grid-column: 1 / -1;
+    }
+
+    .done-wrap {
+      justify-content: stretch;
+    }
   }
 
   .control-group.grow {

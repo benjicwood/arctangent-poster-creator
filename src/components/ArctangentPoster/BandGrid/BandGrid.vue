@@ -104,6 +104,7 @@
     @co-headliner="handleCoHeadliner"
     @edit-band="editBandInRow"
     @close="closeEditor"
+    @set-mode="setRowMode"
   />
 </template>
 
@@ -123,6 +124,7 @@ const makeRow = ({
   verticalAlign = "center",
   capSparseText = false,
   divider = "•",
+  mode = "text",
 } = {}) => ({
   bands: [],
   size,
@@ -135,37 +137,52 @@ const makeRow = ({
   verticalAlign,
   capSparseText,
   divider,
+  mode,
 });
 
 const makeStandardDay = () => ({
   headliner: makeRow({
-    size: 7,
+    size: 6,
     weight: 900,
     maxBands: 1,
     minPx: 18,
     maxPx: 56,
     allowWrap: true,
+    mode: "logos",
   }),
   coHeadliner: makeRow({
-    size: 7,
+    size: 6,
     weight: 900,
     maxBands: 1,
     minPx: 18,
     maxPx: 50,
     allowWrap: true,
+    mode: "logos",
   }),
   secondRow: makeRow({
     size: 6,
     weight: 500,
-    maxBands: 5,
+    maxBands: 6,
     minPx: 11,
     maxPx: 28,
+    mode: "text",
   }),
 
-  lowerLineup: makeRow({
+  lowerLineupOne: makeRow({
     size: 1,
     weight: 500,
-    maxBands: 28,
+    maxBands: 14,
+    minPx: 8,
+    maxPx: 18,
+    allowWrap: true,
+    verticalAlign: "top",
+    capSparseText: true,
+  }),
+
+  lowerLineupTwo: makeRow({
+    size: 1,
+    weight: 500,
+    maxBands: 14,
     minPx: 8,
     maxPx: 18,
     allowWrap: true,
@@ -178,10 +195,11 @@ const makeWednesday = () => ({
   headliner: makeRow({
     size: 7,
     weight: 900,
-    maxBands: 2,
+    maxBands: 6,
     minPx: 18,
     maxPx: 56,
     allowWrap: true,
+    mode: "logos",
   }),
   secondRow: makeRow({
     size: 5,
@@ -189,6 +207,7 @@ const makeWednesday = () => ({
     maxBands: 4,
     minPx: 10,
     maxPx: 24,
+    mode: "text",
   }),
   fourthRow: makeRow({
     size: 4,
@@ -297,6 +316,13 @@ export default {
       );
     },
 
+    setRowMode(mode) {
+      const row = this.activeRow;
+      if (!row) return;
+
+      row.mode = mode === "logos" ? "logos" : "text";
+    },
+
     setPreviewMode(isPreview) {
       this.hideEditingUI = !!isPreview;
       if (isPreview) this.closeEditor();
@@ -338,7 +364,8 @@ export default {
         headliner: "headliner",
         coHeadliner: "co_headliner",
         secondRow: "main_support",
-        lowerLineup: "lower_lineup",
+        lowerLineupOne: "lower_lineup_1",
+        lowerLineupTwo: "lower_lineup_2",
       };
 
       return map[rowKey] || rowKey;

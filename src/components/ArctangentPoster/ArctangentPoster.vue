@@ -30,7 +30,8 @@
   </div>
 
   <!-- Fixed bottom bar -->
-  <div class="button-row" :class="{ hidden: controlsHidden }">
+<div class="button-row" :class="{ hidden: controlsHidden }">
+  <div class="button-actions">
     <button
       class="download-btn"
       :disabled="isExporting"
@@ -48,10 +49,25 @@
       Share Poster
     </button>
 
-    <button v-else class="copy-btn" :disabled="isExporting" @click="copyPoster">
+    <button
+      v-else
+      class="copy-btn"
+      :disabled="isExporting"
+      @click="copyPoster"
+    >
       Copy to Clipboard
     </button>
   </div>
+
+  <a
+    href="/#/gallery"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="gallery-link"
+  >
+    Need inspiration? see more fan posters →
+  </a>
+</div>
 
   <!-- Toggle button -->
   <button class="toggle-bar" @click="controlsHidden = !controlsHidden">
@@ -317,7 +333,7 @@ export default {
   font-family: sans-serif;
   border: 2px solid white;
   position: fixed;
-  bottom: 4.5rem;
+  bottom: 6.5rem;
   // left: 50%;
   // transform: translateX(-50%);
   z-index: 101;
@@ -469,5 +485,25 @@ export default {
     left: auto;
     right: 10px;
   }
+}
+
+.button-row {
+  flex-direction: column;
+}
+
+.button-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.gallery-link {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  text-decoration: none;
+  text-align: center;
+}
+
+.gallery-link:hover {
+  text-decoration: underline;
 }
 </style>
