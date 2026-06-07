@@ -170,7 +170,7 @@
         </div>
 
         <div class="controls-row" :class="{ 'logos-mode': isLogoMode }">
-            <div class="mode-toggle">
+          <div class="mode-toggle">
             <span>Row style</span>
 
             <button
@@ -193,13 +193,7 @@
 
           <!-- <template v-if="!isLogoMode"> -->
           <div class="control-group grow">
-            {{
-              isLogoMode
-                ? "Logo size"
-                : isAutoCappedRow
-                  ? "Text size (add more bands first)"
-                  : "Text size"
-            }}
+            {{ textSizeLabel }}
             <input
               id="row-size"
               type="range"
@@ -381,6 +375,17 @@ export default {
 
     isWednesdayHeadliner() {
       return this.slug === "dayFour" && this.rowKey === "headliner";
+    },
+    textSizeLabel() {
+      if (this.isLogoMode) return "Logo size";
+
+      if (window.innerWidth <= 700) {
+        return "Text size";
+      }
+
+      return this.isAutoCappedRow
+        ? "Text size (add more bands first)"
+        : "Text size";
     },
   },
 
@@ -845,46 +850,52 @@ select {
     overflow-y: auto;
   }
 
-  @media (max-width: 700px) {
-    .controls-row {
-      grid-template-columns: 1fr 1fr;
-      gap: 0.6rem;
-      align-items: end;
-    }
+  .controls-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.55rem;
+    align-items: end;
+  }
 
-    .mode-toggle {
-      justify-self: start;
-    }
+  /* Top row */
 
-    .control-group.grow {
-      grid-column: 1 / -1;
-    }
-
-    .done-wrap {
-      justify-content: stretch;
-    }
+  .mode-toggle {
+    grid-column: 1 / 3;
+    justify-self: stretch;
   }
 
   .control-group.grow {
-    grid-column: 1 / -1;
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .weight-group,
-  .align-group {
+    grid-column: 3 / 5;
     min-width: 0;
   }
 
+  /* Bottom row */
+
+  .weight-group {
+    grid-column: 1 / 2;
+  }
+
+  .align-group {
+    grid-column: 2 / 3;
+  }
+
+  .divider-group {
+    grid-column: 3 / 4;
+  }
+
   .done-wrap {
-    grid-column: auto;
+    grid-column: 4 / 5;
     justify-content: stretch;
   }
 
   .done-btn {
-    width: auto;
+    width: 100%;
     height: 100%;
-    padding: 0.56rem 0.8rem;
+    padding: 0.56rem 0.5rem;
+  }
+
+  .control-hidden {
+    display: none;
   }
 }
 
