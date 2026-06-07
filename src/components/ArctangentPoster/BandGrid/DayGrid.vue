@@ -40,15 +40,27 @@
       @click="$emit('open', slug, 'secondRow', `${day} Second Row`)"
     />
 
-    <PosterRow
-      class="lower-lineup-row"
-      :row="bands.lowerLineup"
-      :placeholder="`CLICK TO ADD ${day.toUpperCase()} LOWER LINEUP`"
-      :alwaysHighlight="alwaysHighlight || activeRowKey === 'lowerLineup'"
-      :showPlaceholderAlways="!posterStarted"
-      :hideEditingUI="hideEditingUI"
-      @click="$emit('open', slug, 'lowerLineup', `${day} Lower Lineup`)"
-    />
+    <div class="lower-lineup-stack">
+  <PosterRow
+    class="lower-lineup-row"
+    :row="bands.lowerLineupOne"
+    :placeholder="`CLICK TO ADD ${day.toUpperCase()} LOWER LINEUP`"
+    :alwaysHighlight="alwaysHighlight || activeRowKey === 'lowerLineupOne'"
+    :showPlaceholderAlways="!posterStarted"
+    :hideEditingUI="hideEditingUI"
+    @click="$emit('open', slug, 'lowerLineupOne', `${day} Lower Lineup 1`)"
+  />
+
+  <PosterRow
+    class="lower-lineup-row"
+    :row="bands.lowerLineupTwo"
+    :placeholder="`CLICK TO ADD ${day.toUpperCase()} LOWER LINEUP`"
+    :alwaysHighlight="alwaysHighlight || activeRowKey === 'lowerLineupTwo'"
+    :showPlaceholderAlways="!posterStarted"
+    :hideEditingUI="hideEditingUI"
+    @click="$emit('open', slug, 'lowerLineupTwo', `${day} Lower Lineup 2`)"
+  />
+</div>
   </div>
 </template>
 
@@ -102,7 +114,15 @@ export default {
   height: 17%;
 }
 
-.lower-lineup-row {
+.lower-lineup-stack {
   height: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 1%;
+}
+
+.lower-lineup-row {
+  flex: 1;
+  min-height: 0;
 }
 </style>

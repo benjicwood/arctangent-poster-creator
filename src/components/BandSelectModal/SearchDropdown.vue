@@ -145,13 +145,13 @@ export default {
 
       this.$emit("update:modelValue", "");
 
-      if (!keepFocus && this.$refs.inputEl) {
-        this.$refs.inputEl.blur();
-      }
-
-      if (keepFocus && this.$refs.inputEl) {
-        this.$refs.inputEl.focus();
-      }
+      this.$nextTick(() => {
+        if (keepFocus) {
+          this.$refs.inputEl?.focus();
+        } else {
+          this.$refs.inputEl?.blur();
+        }
+      });
     },
 
     selectOption(option) {
@@ -190,7 +190,9 @@ export default {
         this.$emit("commit", { type: "custom", text });
       }
 
-      this.resetInput({ keepFocus: true });
+      this.$nextTick(() => {
+        this.resetInput({ keepFocus: true });
+      });
     },
 
     onBlurCommit() {
