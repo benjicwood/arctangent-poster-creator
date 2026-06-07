@@ -169,7 +169,7 @@
           </div>
         </div>
 
-        <div class="controls-row" :class="{ 'logos-mode': isLogoMode }">
+        <div class="controls-header">
           <div class="mode-toggle">
             <span>Row style</span>
 
@@ -191,9 +191,30 @@
             </button>
           </div>
 
-          <!-- <template v-if="!isLogoMode"> -->
+          <button
+            type="button"
+            class="styling-toggle"
+            @click="stylingExpanded = !stylingExpanded"
+          >
+            {{ stylingExpanded ? "Hide styling ▲" : "Show styling ▼" }}
+          </button>
+
+          <div class="done-wrap">
+            <button type="button" class="done-btn" @click="$emit('close')">
+              Done
+            </button>
+          </div>
+        </div>
+
+        <div v-if="stylingExpanded" class="controls-row">
           <div class="control-group grow">
-            {{ textSizeLabel }}
+            {{
+              isLogoMode
+                ? "Logo size"
+                : isAutoCappedRow
+                  ? "Text size"
+                  : "Text size"
+            }}
             <input
               id="row-size"
               type="range"
@@ -207,13 +228,14 @@
           </div>
 
           <div
-            :class="{ 'control-hidden': isLogoMode }"
             class="control-group weight-group"
+            :class="{ disabled: isLogoMode }"
           >
             <label for="row-weight">Text weight</label>
             <select
               id="row-weight"
               v-model.number="fontWeight"
+              :disabled="isLogoMode"
               @change="$emit('set-weight', fontWeight)"
             >
               <option :value="200">Light</option>
@@ -223,13 +245,14 @@
           </div>
 
           <div
-            :class="{ 'control-hidden': isLogoMode }"
             class="control-group align-group"
+            :class="{ disabled: isLogoMode }"
           >
             <label for="row-align">Text align</label>
             <select
               id="row-align"
               :value="row.textAlign || 'center'"
+              :disabled="isLogoMode"
               @change="$emit('set-align', $event.target.value)"
             >
               <option value="left">Left</option>
@@ -239,14 +262,15 @@
           </div>
 
           <div
-            :class="{ 'control-hidden': isLogoMode }"
             class="control-group divider-group"
+            :class="{ disabled: isLogoMode }"
           >
             <label for="row-divider">Divider</label>
 
             <select
               id="row-divider"
               :value="row.divider || '•'"
+              :disabled="isLogoMode"
               @change="$emit('set-divider', $event.target.value)"
             >
               <option value="•">•</option>
@@ -255,13 +279,6 @@
               <option value="|">|</option>
               <option value=" ">Space</option>
             </select>
-          </div>
-          <!-- </template> -->
-
-          <div class="done-wrap">
-            <button type="button" class="done-btn" @click="$emit('close')">
-              Done
-            </button>
           </div>
         </div>
       </div>
@@ -311,6 +328,7 @@ export default {
       sliderValue: 5,
       fontWeight: 500,
       // bandsExpanded: false,
+      stylingExpanded: false,
       editingIndex: null,
       editingName: "",
       mobileOffsetY: 0,
@@ -663,17 +681,6 @@ export default {
   gap: 0.5rem;
 }
 
-// .collapse-toggle {
-//   align-self: flex-start;
-//   border: none;
-//   background: #e9ecef;
-//   color: #333;
-//   padding: 0.45rem 0.7rem;
-//   border-radius: 8px;
-//   cursor: pointer;
-//   font-size: 0.85rem;
-// }
-
 .selected-list {
   display: flex;
   flex-direction: column;
@@ -725,12 +732,36 @@ export default {
   }
 }
 
+.controls-header {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.styling-toggle {
+  border: none;
+  background: #f1f1f1;
+  color: #333;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
 .controls-row {
   flex-shrink: 0;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) 140px 140px 120px auto;
+  grid-template-columns: minmax(0, 1fr) 140px 140px 120px;
   gap: 0.7rem;
   align-items: end;
+}
+
+.control-group.disabled {
+  opacity: 0.35;
+  pointer-events: none;
 }
 
 .mode-toggle {
@@ -791,15 +822,6 @@ select {
 select {
   padding: 0.42rem;
 }
-.control-hidden {
-  visibility: hidden;
-  pointer-events: none;
-}
-@media (max-width: 700px) {
-  .control-hidden {
-    display: none;
-  }
-}
 
 .done-wrap {
   display: flex;
@@ -835,7 +857,8 @@ select {
 
   .search-block,
   .toggle-wrap,
-  .controls-row {
+  .controls-row,
+  .controls-header {
     flex-shrink: 0;
   }
 
@@ -850,65 +873,58 @@ select {
     overflow-y: auto;
   }
 
-  .controls-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.55rem;
-    align-items: end;
+  .controls-header {
+    grid-template-columns: 1fr 1fr;
   }
 
-  /* Top row */
+  .mode-toggle,
+  .styling-toggle {
+    width: 100%;
+  }
 
   .mode-toggle {
-    grid-column: 1 / 3;
-    justify-self: stretch;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 
-  .control-group.grow {
-    grid-column: 3 / 5;
-    min-width: 0;
-  }
-
-  /* Bottom row */
-
-  .weight-group {
-    grid-column: 1 / 2;
-  }
-
-  .align-group {
-    grid-column: 2 / 3;
-  }
-
-  .divider-group {
-    grid-column: 3 / 4;
+  .mode-toggle button {
+    width: 100%;
   }
 
   .done-wrap {
-    grid-column: 4 / 5;
-    justify-content: stretch;
+    grid-column: 1 / -1;
   }
 
   .done-btn {
     width: 100%;
-    height: 100%;
-    padding: 0.56rem 0.5rem;
   }
 
-  .control-hidden {
+  .controls-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .control-group.grow {
+    grid-column: 1 / -1;
+  }
+
+  .weight-group,
+  .align-group,
+  .divider-group {
+    min-width: 0;
+  }
+
+  .weight-group label,
+  .align-group label,
+  .divider-group label {
     display: none;
   }
-}
 
-input[type="range"]:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
+  .mode-toggle {
+    align-self: flex-start;
+  }
 
-.tray-drag-handle {
-  display: none;
-}
-
-@media (max-width: 700px) {
   .tray-drag-handle {
     display: flex;
     justify-content: center;
@@ -925,11 +941,21 @@ input[type="range"]:disabled {
       display: block;
     }
   }
-}
 
-@media (max-width: 700px) {
   .editor-tray {
     transition: transform 0.15s ease;
   }
+  .mode-toggle span {
+    display: none;
+  }
+}
+
+input[type="range"]:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tray-drag-handle {
+  display: none;
 }
 </style>
