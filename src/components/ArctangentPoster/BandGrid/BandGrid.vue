@@ -366,6 +366,7 @@ export default {
         secondRow: "main_support",
         lowerLineupOne: "lower_lineup_1",
         lowerLineupTwo: "lower_lineup_2",
+        fourthRow: "wednesday_lower",
       };
 
       return map[rowKey] || rowKey;
@@ -377,6 +378,7 @@ export default {
       if (row.bands.length >= row.maxBands) return;
 
       const normalizedName = this.normalizeBandName(band.name);
+      if (!normalizedName || !this.activeRowKey) return;
       const normalizedId = band.id || null;
       const normalizedSource = band.source || "custom";
 
@@ -408,7 +410,7 @@ export default {
         poster_day: this.getAnalyticsDayLabel(this.activeSlug),
         poster_row_key: this.activeRowKey,
         poster_row_label: this.getAnalyticsRowLabel(this.activeRowKey),
-        band_id: normalizedId || "",
+        band_id: normalizedId || normalizedName.toLowerCase().replace(/[^a-z0-9]+/g, ""),
         band_name: normalizedName,
         band_source: normalizedSource,
       });
