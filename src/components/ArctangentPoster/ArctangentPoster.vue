@@ -15,7 +15,11 @@
         2027
       </button>
     </div> -->
-    <div class="poster-wrapper" ref="poster" @click.once="handleFirstInteraction">
+    <div
+      class="poster-wrapper"
+      ref="poster"
+      @click.once="handleFirstInteraction"
+    >
       <img
         class="poster-background"
         :src="backgroundSrc"
@@ -30,44 +34,44 @@
   </div>
 
   <!-- Fixed bottom bar -->
-<div class="button-row" :class="{ hidden: controlsHidden }">
-  <div class="button-actions">
-    <button
-      class="download-btn"
-      :disabled="isExporting"
-      @click="downloadPoster"
-    >
-      Export Poster
-    </button>
+  <div class="button-row" :class="{ hidden: controlsHidden }">
+    <div class="button-actions">
+      <button
+        class="download-btn"
+        :disabled="isExporting"
+        @click="downloadPoster"
+      >
+        Export Poster
+      </button>
 
-    <button
-      v-if="isMobile"
-      :disabled="isExporting"
-      class="share-btn"
-      @click="sharePoster"
-    >
-      Share Poster
-    </button>
+      <button
+        v-if="isMobile"
+        :disabled="isExporting"
+        class="share-btn"
+        @click="sharePoster"
+      >
+        Share Poster
+      </button>
 
-    <button
-      v-else
-      class="copy-btn"
-      :disabled="isExporting"
-      @click="copyPoster"
+      <button
+        v-else
+        class="copy-btn"
+        :disabled="isExporting"
+        @click="copyPoster"
+      >
+        Copy to Clipboard
+      </button>
+    </div>
+
+    <a
+      href="/#/gallery"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="gallery-link"
     >
-      Copy to Clipboard
-    </button>
+      Need inspiration? see more fan posters →
+    </a>
   </div>
-
-  <a
-    href="/#/gallery"
-    target="_blank"
-    rel="noopener noreferrer"
-    class="gallery-link"
-  >
-    Need inspiration? see more fan posters →
-  </a>
-</div>
 
   <!-- Toggle button -->
   <button class="toggle-bar" @click="controlsHidden = !controlsHidden">
@@ -157,16 +161,19 @@ export default {
         await this.withCleanPosterRender(async () => {
           const node = this.$refs.poster;
 
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+          const pixelRatio = isIOS ? 1 : 2;
+
           const blob = await toBlob(node, {
             backgroundColor: "#000",
-            pixelRatio: 2,
+            pixelRatio,
           });
 
           const dataUrl = await toPng(node, {
             quality: 1,
             cacheBust: true,
             backgroundColor: "#000",
-            pixelRatio: 2,
+            pixelRatio,
           });
 
           const link = document.createElement("a");
@@ -174,13 +181,15 @@ export default {
           link.href = dataUrl;
           link.click();
 
-          try {
-            await this.uploadPosterToCloudinary(blob);
-            this.showToast("Poster downloaded!");
-          } catch (e) {
-            console.error(e);
-            this.showToast("Poster downloaded", "error");
+          if (!isIOS) {
+            try {
+              await this.uploadPosterToCloudinary(blob);
+            } catch (e) {
+              console.error(e);
+            }
           }
+
+          this.showToast("Poster downloaded!");
         });
       } finally {
         this.isExporting = false;
@@ -195,9 +204,12 @@ export default {
         await this.withCleanPosterRender(async () => {
           const node = this.$refs.poster;
 
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+          const pixelRatio = isIOS ? 1 : 2;
+
           const blob = await toBlob(node, {
             backgroundColor: "#000",
-            pixelRatio: 2,
+            pixelRatio,
           });
 
           const file = new File(
@@ -417,6 +429,14 @@ export default {
 }
 
 @media (max-width: 620px) {
+  .poster-container {
+      align-items: flex-start;
+  }
+
+  .poster-wrapper {
+    margin: 4px auto;
+  }
+
   .button-row {
     top: auto;
     right: auto;

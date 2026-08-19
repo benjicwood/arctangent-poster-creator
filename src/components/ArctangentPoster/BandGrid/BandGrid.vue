@@ -26,7 +26,7 @@
         :hideEditingUI="hideEditingUI"
       />
 
-      <PosterRow
+      <!-- <PosterRow
         class="wednesday-fourth-row"
         :row="days.dayFour.fourthRow"
         placeholder="CLICK TO ADD EXTRA WEDNESDAY BANDS"
@@ -36,7 +36,7 @@
         "
         :showPlaceholderAlways="!posterStarted"
         :hideEditingUI="hideEditingUI"
-      />
+      /> -->
     </div>
 
     <!-- Thursday -->
@@ -112,6 +112,7 @@
 import DayGrid from "./DayGrid.vue";
 import PosterRow from "./PosterRow.vue";
 import RowEditorTray from "../../BandSelectModal/RowEditorTray.vue";
+import { trackBandSelected } from "../../../utils/analytics.js";
 
 const makeRow = ({
   size = 5,
@@ -162,9 +163,10 @@ const makeStandardDay = () => ({
   secondRow: makeRow({
     size: 6,
     weight: 500,
-    maxBands: 6,
+    maxBands: 8,
     minPx: 11,
     maxPx: 28,
+    allowWrap: true,
     mode: "text",
   }),
 
@@ -195,7 +197,7 @@ const makeWednesday = () => ({
   headliner: makeRow({
     size: 7,
     weight: 900,
-    maxBands: 6,
+    maxBands: 4,
     minPx: 18,
     maxPx: 56,
     allowWrap: true,
@@ -204,18 +206,19 @@ const makeWednesday = () => ({
   secondRow: makeRow({
     size: 5,
     weight: 500,
-    maxBands: 4,
+    maxBands: 6,
     minPx: 10,
     maxPx: 24,
+    allowWrap: true,
     mode: "text",
   }),
-  fourthRow: makeRow({
-    size: 4,
-    weight: 500,
-    maxBands: 8,
-    minPx: 8,
-    maxPx: 14,
-  }),
+  // fourthRow: makeRow({
+  //   size: 4,
+  //   weight: 500,
+  //   maxBands: 8,
+  //   minPx: 8,
+  //   maxPx: 14,
+  // }),
 });
 
 export default {
@@ -406,11 +409,13 @@ export default {
         source: normalizedSource,
       });
 
-      this.trackBandEvent("poster_band_added", {
+      trackBandSelected("poster_band_added", {
         poster_day: this.getAnalyticsDayLabel(this.activeSlug),
         poster_row_key: this.activeRowKey,
         poster_row_label: this.getAnalyticsRowLabel(this.activeRowKey),
-        band_id: normalizedId || normalizedName.toLowerCase().replace(/[^a-z0-9]+/g, ""),
+        band_id:
+          normalizedId ||
+          normalizedName.toLowerCase().replace(/[^a-z0-9]+/g, ""),
         band_name: normalizedName,
         band_source: normalizedSource,
       });
@@ -466,21 +471,6 @@ export default {
       if (day === "Friday") this.coHeadliner.friday = value;
       if (day === "Saturday") this.coHeadliner.saturday = value;
     },
-
-    // trackBandEvent(eventName, payload) {
-    //   if (typeof window !== "undefined" && typeof window.gtag === "function") {
-    //     window.gtag("event", eventName, payload);
-    //   }
-    // },
-    trackBandEvent(eventName, payload) {
-      // console.log("TRACKING EVENT:", eventName, payload);
-
-      if (typeof window !== "undefined" && typeof window.gtag === "function") {
-        window.gtag("event", eventName, payload);
-      } else {
-        console.log("gtag not found");
-      }
-    },
   },
 };
 </script>
@@ -516,14 +506,19 @@ export default {
 }
 
 .wednesday-headliner {
-  height: 44%;
+  height: 56%;
 }
 
 .wednesday-second-row {
-  height: 24%;
+  height: 44%;
 }
 
-.wednesday-fourth-row {
-  height: 22%;
-}
+// .wednesday-second-row :deep(.poster-row-text) {
+//     white-space: normal !important;
+// }
+
+
+// .wednesday-fourth-row {
+//   height: 22%;
+// }
 </style>

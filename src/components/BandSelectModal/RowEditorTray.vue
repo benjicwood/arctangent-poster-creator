@@ -81,7 +81,8 @@
         </div>
 
         <div v-if="row.bands.length" class="selected-wrap">
-          <!-- <button
+          <button
+            v-if="isMobileTray"
             type="button"
             class="collapse-toggle"
             @click="bandsExpanded = !bandsExpanded"
@@ -91,9 +92,9 @@
                 ? "Hide selected bands"
                 : `Show selected bands (${row.bands.length})`
             }}
-          </button> -->
+          </button>
 
-          <div class="selected-list">
+          <div v-show="!isMobileTray || bandsExpanded" class="selected-list">
             <div
               v-for="(band, index) in row.bands"
               :key="`${band.id || band.name}-${index}`"
@@ -112,7 +113,7 @@
 
                 <template v-else>
                   {{ band.name.toUpperCase() }}
-                  <small>({{ band.source }})</small>
+                  <!-- <small>({{ band.source }})</small> -->
                 </template>
               </div>
 
@@ -327,7 +328,8 @@ export default {
       inputText: "",
       sliderValue: 5,
       fontWeight: 500,
-      // bandsExpanded: false,
+      bandsExpanded: false,
+      isMobileTray: window.innerWidth <= 700,
       stylingExpanded: false,
       editingIndex: null,
       editingName: "",
@@ -428,6 +430,8 @@ export default {
 
         this.$nextTick(() => {
           if (this.editingIndex !== null) return;
+          if (window.innerWidth <= 700) return;
+
           this.$refs.searchDropdown?.focus?.();
         });
       },
@@ -512,10 +516,9 @@ export default {
           source: "catalog",
         });
       } else {
-        if (this.row.mode === "logos") {
-          this.$emit("set-mode", "text");
-        }
-
+        // if (this.row.mode === "logos") {
+        //   this.$emit("set-mode", "text");
+        // }
         this.$emit("add-band", {
           id: null,
           name: text,
@@ -628,7 +631,7 @@ export default {
   padding: 1rem 2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  // gap: 0.5rem;
   max-height: 32vh;
   overflow: hidden;
 }

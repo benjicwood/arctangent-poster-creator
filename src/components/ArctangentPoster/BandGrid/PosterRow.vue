@@ -167,7 +167,7 @@ export default {
         10: 1.4,
       };
 
-      return scaleMap[size] || 1;
+      return scaleMap[size] || 6;
     },
   },
 
@@ -393,7 +393,7 @@ export default {
   font-family: "NeueHaasUnica", sans-serif;
   font-weight: 900;
   text-transform: uppercase;
-  font-size: clamp(10px, 1.4vw, 22px);
+  font-size: clamp(10px, 1.2vw, 20px);
   line-height: 1;
   text-align: center;
 }
