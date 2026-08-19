@@ -472,9 +472,17 @@ export default {
       const name = this.editingName.trim();
       if (!name) return;
 
+      const normalizedName = name.toUpperCase();
+
+      const catalogBand = this.bands.find(
+        (band) => (band?.name || "").trim().toUpperCase() === normalizedName,
+      );
+
       this.$emit("edit-band", {
         index,
+        id: catalogBand?.id ?? null,
         name,
+        source: catalogBand ? "catalog" : "custom",
       });
 
       this.cancelBandEdit();
@@ -583,6 +591,8 @@ export default {
   z-index: 1200;
   pointer-events: none;
   transition: transform 0.25s ease;
+  max-width: 1000px;
+  margin: auto;
 }
 
 .editor-tray.bottom {
@@ -681,7 +691,7 @@ export default {
 .selected-wrap {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  padding-bottom: 0.4rem;
 }
 
 .selected-list {
@@ -704,8 +714,13 @@ export default {
 }
 
 .selected-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
   font-weight: 600;
-  word-break: break-word;
   font-size: 0.92rem;
 
   small {
@@ -718,7 +733,8 @@ export default {
 .selected-actions {
   display: flex;
   gap: 0.35rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
 
   button {
     border: none;
@@ -758,7 +774,7 @@ export default {
   flex-shrink: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 140px 140px 120px;
-  gap: 0.7rem;
+  gap: 0.5rem;
   align-items: end;
 }
 
@@ -868,6 +884,7 @@ select {
   .selected-wrap {
     min-height: 0;
     flex: 1;
+    padding-bottom: 0.4rem;
   }
 
   .selected-list {
@@ -885,10 +902,10 @@ select {
     width: 100%;
   }
 
-  .mode-toggle {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
+  // .mode-toggle {
+  //   display: grid;
+  //   grid-template-columns: 1fr 1fr;
+  // }
 
   .mode-toggle button {
     width: 100%;

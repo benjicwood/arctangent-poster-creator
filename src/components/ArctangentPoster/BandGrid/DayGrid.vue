@@ -111,11 +111,11 @@ export default {
 }
 
 .second-row {
-  height: 17%;
+  height: 25%;
 }
 
 .lower-lineup-stack {
-  height: 50%;
+  height: 42%;
   display: flex;
   flex-direction: column;
   gap: 1%;

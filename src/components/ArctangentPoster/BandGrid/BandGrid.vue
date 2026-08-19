@@ -295,15 +295,28 @@ export default {
       this.isEditorVisible = true;
     },
 
-    editBandInRow({ index, name }) {
+    editBandInRow({ index, id, name, source }) {
       const row = this.activeRow;
       if (!row || index < 0 || index >= row.bands.length) return;
 
+      const normalizedName = this.normalizeBandName(name);
+
       row.bands[index] = {
-        ...row.bands[index],
-        name: this.normalizeBandName(name),
-        source: row.bands[index].source || "custom",
+        id: id || null,
+        name: normalizedName,
+        source: source || "custom",
       };
+
+      trackBandSelected("poster_band_added", {
+        poster_day: this.getAnalyticsDayLabel(this.activeSlug),
+        poster_row_key: this.activeRowKey,
+        poster_row_label: this.getAnalyticsRowLabel(this.activeRowKey),
+        band_id:
+          id ||
+          normalizedName.toLowerCase().replace(/[^a-z0-9]+/g, ""),
+        band_name: normalizedName,
+        band_source: source || "custom",
+      });
     },
 
     closeEditor() {

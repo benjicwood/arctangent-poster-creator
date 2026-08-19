@@ -26,27 +26,22 @@ a:hover {
 body {
   margin: 0;
   min-height: 100vh;
-  width: 100vw;
+  width: 100%;
   display: flex;
-  justify-content: center; /* horizontal centering */
-  align-items: flex-start; /* vertical: start/top */
-  background-color: #233E31; /* default background */
-  /* background-image: url(./assets/background/squarespace-bg.png); */
-  /* background-size: contain; */
+  justify-content: center;
+  align-items: flex-start;
+  background-color: #233e31;
   background-repeat: no-repeat;
   background-position: top center;
+  position: relative;
 }
 
-/* dark overlay */
 body::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* tweak opacity to taste */
-  pointer-events: none; /* ensures overlay doesn't block clicks */
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  pointer-events: none;
   z-index: 0;
 }
 
