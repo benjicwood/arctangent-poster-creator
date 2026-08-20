@@ -500,12 +500,17 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: clamp(2.67px, 0.8vh, 10.67px);
+  gap: clamp(2.67px, 0.7vh, 10.67px);
   box-sizing: border-box;
   padding-top: 17%;
   padding-bottom: 8%;
   padding-left: 7%;
   padding-right: 4%;
+}
+@media (max-width: 768px) {
+  .poster-content {
+    gap: clamp(2.67px, 0.5vh, 10.67px);
+  }
 }
 
 .band-grid-wednesday {
