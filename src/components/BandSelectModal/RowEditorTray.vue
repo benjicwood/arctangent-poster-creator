@@ -82,7 +82,6 @@
 
         <div v-if="row.bands.length" class="selected-wrap">
           <button
-            v-if="isMobileTray"
             type="button"
             class="collapse-toggle"
             @click="bandsExpanded = !bandsExpanded"
@@ -94,7 +93,7 @@
             }}
           </button>
 
-          <div v-show="!isMobileTray || bandsExpanded" class="selected-list">
+          <div v-show="bandsExpanded" class="selected-list">
             <div
               v-for="(band, index) in row.bands"
               :key="`${band.id || band.name}-${index}`"
@@ -328,7 +327,7 @@ export default {
       inputText: "",
       sliderValue: 5,
       fontWeight: 500,
-      bandsExpanded: false,
+      bandsExpanded: true,
       isMobileTray: window.innerWidth <= 700,
       stylingExpanded: false,
       editingIndex: null,
