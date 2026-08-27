@@ -153,6 +153,10 @@ export default {
       });
     },
 
+    isFirefox() {
+      return navigator.userAgent.toLowerCase().includes("firefox");
+    },
+
     async downloadPoster() {
       if (this.isExporting) return;
       this.isExporting = true;
@@ -167,6 +171,7 @@ export default {
           const blob = await toBlob(node, {
             backgroundColor: "#000",
             pixelRatio,
+            skipFonts: this.isFirefox(),
           });
 
           const dataUrl = await toPng(node, {
@@ -174,6 +179,7 @@ export default {
             cacheBust: true,
             backgroundColor: "#000",
             pixelRatio,
+            skipFonts: this.isFirefox(),
           });
 
           const link = document.createElement("a");
@@ -210,6 +216,7 @@ export default {
           const blob = await toBlob(node, {
             backgroundColor: "#000",
             pixelRatio,
+            skipFonts: this.isFirefox(),
           });
 
           const file = new File(
@@ -256,6 +263,7 @@ export default {
           const blob = await toBlob(node, {
             backgroundColor: "#000",
             pixelRatio: 2,
+            skipFonts: this.isFirefox(),
           });
 
           await navigator.clipboard.write([
